@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  TENANT_ADMIN
+  REVIEWER
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  DOCUMENT_VERIFICATION
+  RISK_ASSESSMENT
+  MANUAL_REVIEW
+  APPROVED
+  REJECTED
+}
+
+model Tenant {
+  id           String @id @default(cuid())
+  name         String
+
+  users        User[]
+  applications Application[]
+
+  createdAt    DateTime @default(now())
+}
+
+model User {
+  id         String @id @default(cuid())
+
+  name       String
+  email      String @unique
+  password   String
+
+  role       UserRole
+
+  tenantId   String
+  tenant     Tenant @relation(fields: [tenantId], references: [id])
+
+  createdAt  DateTime @default(now())
+}
+
+model Application {
+  id         String @id @default(cuid())
+
+  fullName   String
+  email      String
+
+  status     ApplicationStatus @default(DRAFT)
+
+  tenantId   String
+  tenant     Tenant @relation(fields: [tenantId], references: [id])
+
+  createdAt  DateTime @default(now())
+}
