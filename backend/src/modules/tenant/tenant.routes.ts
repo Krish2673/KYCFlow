@@ -1,6 +1,8 @@
 // src/modules/tenant/tenant.routes.ts
 
 import { Router } from "express";
+import { authenticate } from "../../middleware/auth.middleware";
+import { authorize } from "../../middleware/role.middleware";
 
 import {
   createTenantController,
@@ -10,10 +12,10 @@ import {
 
 const router = Router();
 
-router.post("/", createTenantController);
+router.post("/", authenticate, authorize("TENANT_ADMIN"), createTenantController);
 
-router.get("/", getAllTenantsController);
+router.get("/", authenticate, authorize("TENANT_ADMIN"), getAllTenantsController);
 
-router.get("/:id", getTenantByIdController);
+router.get("/:id", authenticate, authorize("TENANT_ADMIN"), getTenantByIdController);
 
 export default router;
