@@ -4,6 +4,7 @@ import tenantRoutes from "./modules/tenant/tenant.routes";
 import userRoutes from "./modules/user/user.routes";
 import authRoutes from "./modules/auth/auth.routes";
 import { authenticate } from "./middleware/auth.middleware";
+import applicationRoutes from "./modules/application/application.routes";
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.get("/health", (_, res) => {
 app.use("/api/v1/tenants", tenantRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/applications", applicationRoutes);
 app.get(
   "/me",
   authenticate,

@@ -47,21 +47,26 @@ model User {
   tenantId  String
   tenant    Tenant   @relation(fields: [tenantId], references: [id])
 
+  applications Application[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Application {
-  id         String @id @default(cuid())
+  id          String @id @default(cuid())
 
-  fullName   String
-  email      String
+  fullName    String
+  email       String
 
-  status     ApplicationStatus @default(DRAFT)
+  status      ApplicationStatus @default(DRAFT)
 
-  tenantId   String
-  tenant     Tenant @relation(fields: [tenantId], references: [id])
+  tenantId    String
+  tenant      Tenant @relation(fields: [tenantId], references: [id])
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdById String
+  createdBy   User @relation(fields: [createdById], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

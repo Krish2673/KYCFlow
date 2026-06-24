@@ -10,6 +10,7 @@ export const createUserController = async (
   res: Response
 ) => {
   try {
+    console.log(req.body);
     const user = await createUser(req.body);
 
     res.status(201).json({

@@ -13,9 +13,12 @@ import {
 const router = Router();
 
 router.post("/", authenticate, authorize("TENANT_ADMIN"), createTenantController);
+// router.post("/", createTenantController);
 
 router.get("/", authenticate, authorize("TENANT_ADMIN"), getAllTenantsController);
+// router.get("/", getAllTenantsController);
 
 router.get("/:id", authenticate, authorize("TENANT_ADMIN"), getTenantByIdController);
+// router.get("/:id", getTenantByIdController);
 
 export default router;
