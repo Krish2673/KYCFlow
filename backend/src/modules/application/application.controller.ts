@@ -4,7 +4,10 @@ import {
   createApplication,
   getAllApplications,
   getApplicationById,
+  submitApplication,
+  updateApplicationStatus
 } from "./application.service";
+import { ApplicationStatus } from "@prisma/client";
 
 export const createApplicationController =
   async (
@@ -79,4 +82,70 @@ export const getApplicationByIdController =
       success: true,
       data: application,
     });
+  };
+
+// export const submitApplicationController =
+//   async (
+//     req,
+//     res
+//   ) => {
+
+//     try {
+
+//       const result =
+//         await submitApplication(
+//           req.params.id,
+//           req.user!.tenantId
+//         );
+
+//       res.status(200).json({
+//         success: true,
+//         data: result,
+//       });
+
+//     } catch (error) {
+
+//       res.status(400).json({
+//         success: false,
+//         message:
+//           error instanceof Error
+//             ? error.message
+//             : "Failed",
+//       });
+
+//     }
+
+//   };
+
+export const updateApplicationStatusController =
+  async (req, res) => {
+
+    try {
+
+      const { newStatus } = req.body;
+
+      const application =
+        await updateApplicationStatus(
+          req.params.id,
+          req.user!.tenantId,
+          newStatus as ApplicationStatus
+        );
+
+      res.status(200).json({
+        success: true,
+        data: application,
+      });
+
+    } catch (error) {
+
+      res.status(400).json({
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed",
+      });
+
+    }
+
   };

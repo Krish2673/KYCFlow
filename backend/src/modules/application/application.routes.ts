@@ -4,6 +4,8 @@ import {
   createApplicationController,
   getAllApplicationsController,
   getApplicationByIdController,
+  submitApplicationController,
+  updateApplicationStatusController,
 } from "./application.controller";
 
 import {
@@ -33,6 +35,20 @@ router.get(
   "/:id",
   authenticate,
   getApplicationByIdController
+);
+
+// router.patch(
+//   "/:id/submit",
+//   authenticate,
+//   authorize("TENANT_ADMIN"),
+//   submitApplicationController
+// );
+
+router.patch(
+  "/:id/status",
+  authenticate,
+  authorize("TENANT_ADMIN"),
+  updateApplicationStatusController
 );
 
 export default router;

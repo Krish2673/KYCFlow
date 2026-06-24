@@ -1,4 +1,6 @@
 import prisma from "../../config/prisma";
+import { ApplicationStatus } from "@prisma/client";
+import { VALID_TRANSITIONS } from "../../utils/workflow";
 
 export const createApplication = async (
   fullName: string,
@@ -40,6 +42,92 @@ export const getApplicationById = async (
     },
     include: {
       createdBy: true,
+    },
+  });
+};
+
+// export const submitApplication = async (
+//   applicationId: string,
+//   tenantId: string
+// ) => {
+
+//   const application =
+//     await prisma.application.findFirst({
+//       where: {
+//         id: applicationId,
+//         tenantId,
+//       },
+//     });
+
+//   if (!application) {
+//     throw new Error(
+//       "Application not found"
+//     );
+//   }
+
+//   const allowedTransitions =
+//     VALID_TRANSITIONS[
+//       application.status
+//     ];
+
+//   if (
+//     !allowedTransitions.includes(
+//       ApplicationStatus.SUBMITTED
+//     )
+//   ) {
+//     throw new Error(
+//       `Cannot move from ${application.status} to SUBMITTED`
+//     );
+//   }
+
+//   return prisma.application.update({
+//     where: {
+//       id: applicationId,
+//     },
+//     data: {
+//       status:
+//         ApplicationStatus.SUBMITTED,
+//     },
+//   });
+// };
+
+export const updateApplicationStatus = async (
+  applicationId: string,
+  tenantId: string,
+  newStatus: ApplicationStatus
+) => {
+
+  const application =
+    await prisma.application.findFirst({
+      where: {
+        id: applicationId,
+        tenantId,
+      },
+    });
+
+  if (!application) {
+    throw new Error("Application not found");
+  }
+
+  const allowedTransitions =
+    VALID_TRANSITIONS[
+      application.status
+    ];
+
+  if (
+    !allowedTransitions.includes(newStatus)
+  ) {
+    throw new Error(
+      `Cannot move from ${application.status} to ${newStatus}`
+    );
+  }
+
+  return prisma.application.update({
+    where: {
+      id: applicationId,
+    },
+    data: {
+      status: newStatus,
     },
   });
 };
