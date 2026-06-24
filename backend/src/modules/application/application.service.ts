@@ -1,6 +1,7 @@
 import prisma from "../../config/prisma";
 import { ApplicationStatus } from "@prisma/client";
 import { VALID_TRANSITIONS } from "../../utils/workflow";
+import { createAuditLog } from "../audit/audit.service";
 
 export const createApplication = async (
   fullName: string,
@@ -46,55 +47,9 @@ export const getApplicationById = async (
   });
 };
 
-// export const submitApplication = async (
-//   applicationId: string,
-//   tenantId: string
-// ) => {
-
-//   const application =
-//     await prisma.application.findFirst({
-//       where: {
-//         id: applicationId,
-//         tenantId,
-//       },
-//     });
-
-//   if (!application) {
-//     throw new Error(
-//       "Application not found"
-//     );
-//   }
-
-//   const allowedTransitions =
-//     VALID_TRANSITIONS[
-//       application.status
-//     ];
-
-//   if (
-//     !allowedTransitions.includes(
-//       ApplicationStatus.SUBMITTED
-//     )
-//   ) {
-//     throw new Error(
-//       `Cannot move from ${application.status} to SUBMITTED`
-//     );
-//   }
-
-//   return prisma.application.update({
-//     where: {
-//       id: applicationId,
-//     },
-//     data: {
-//       status:
-//         ApplicationStatus.SUBMITTED,
-//     },
-//   });
-// };
-
-export const updateApplicationStatus = async (
+export const submitApplication = async (
   applicationId: string,
-  tenantId: string,
-  newStatus: ApplicationStatus
+  tenantId: string
 ) => {
 
   const application =
@@ -106,8 +61,58 @@ export const updateApplicationStatus = async (
     });
 
   if (!application) {
+    throw new Error(
+      "Application not found"
+    );
+  }
+
+  const allowedTransitions =
+    VALID_TRANSITIONS[
+      application.status
+    ];
+
+  if (
+    !allowedTransitions.includes(
+      ApplicationStatus.SUBMITTED
+    )
+  ) {
+    throw new Error(
+      `Cannot move from ${application.status} to SUBMITTED`
+    );
+  }
+
+  return prisma.application.update({
+    where: {
+      id: applicationId,
+    },
+    data: {
+      status:
+        ApplicationStatus.SUBMITTED,
+    },
+  });
+};
+
+export const updateApplicationStatus = async (
+  applicationId: string,
+  tenantId: string,
+  userId: string,
+  newStatus: ApplicationStatus
+) => {
+
+  
+  const application =
+  await prisma.application.findFirst({
+    where: {
+      id: applicationId,
+      tenantId,
+    },
+  });
+  
+  if (!application) {
     throw new Error("Application not found");
   }
+
+  const oldStatus = application.status;
 
   const allowedTransitions =
     VALID_TRANSITIONS[
@@ -122,7 +127,8 @@ export const updateApplicationStatus = async (
     );
   }
 
-  return prisma.application.update({
+  const updatedApplication =
+  await prisma.application.update({
     where: {
       id: applicationId,
     },
@@ -130,4 +136,13 @@ export const updateApplicationStatus = async (
       status: newStatus,
     },
   });
+
+  await createAuditLog(
+  application.id,
+  userId,
+  oldStatus,
+  newStatus
+);
+
+  return updatedApplication;
 };

@@ -37,12 +37,12 @@ router.get(
   getApplicationByIdController
 );
 
-// router.patch(
-//   "/:id/submit",
-//   authenticate,
-//   authorize("TENANT_ADMIN"),
-//   submitApplicationController
-// );
+router.patch(
+  "/:id/submit",
+  authenticate,
+  authorize("TENANT_ADMIN"),
+  submitApplicationController
+);
 
 router.patch(
   "/:id/status",

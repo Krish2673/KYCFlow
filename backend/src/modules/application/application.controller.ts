@@ -84,38 +84,38 @@ export const getApplicationByIdController =
     });
   };
 
-// export const submitApplicationController =
-//   async (
-//     req,
-//     res
-//   ) => {
+export const submitApplicationController =
+  async (
+    req,
+    res
+  ) => {
 
-//     try {
+    try {
 
-//       const result =
-//         await submitApplication(
-//           req.params.id,
-//           req.user!.tenantId
-//         );
+      const result =
+        await submitApplication(
+          req.params.id,
+          req.user!.tenantId
+        );
 
-//       res.status(200).json({
-//         success: true,
-//         data: result,
-//       });
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
 
-//     } catch (error) {
+    } catch (error) {
 
-//       res.status(400).json({
-//         success: false,
-//         message:
-//           error instanceof Error
-//             ? error.message
-//             : "Failed",
-//       });
+      res.status(400).json({
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed",
+      });
 
-//     }
+    }
 
-//   };
+  };
 
 export const updateApplicationStatusController =
   async (req, res) => {
@@ -128,7 +128,8 @@ export const updateApplicationStatusController =
         await updateApplicationStatus(
           req.params.id,
           req.user!.tenantId,
-          newStatus as ApplicationStatus
+          req.user!.userId,
+          newStatus
         );
 
       res.status(200).json({
