@@ -17,6 +17,8 @@ import {
   authorize,
 } from "../../middleware/role.middleware";
 
+import { verifyAssignedReviewer } from "../../middleware/reviewer.middleware";
+
 const router = Router();
 
 router.post(
@@ -48,7 +50,8 @@ router.patch(
 router.patch(
   "/:id/status",
   authenticate,
-  authorize("TENANT_ADMIN"),
+  authorize("REVIEWER"),
+  verifyAssignedReviewer,
   updateApplicationStatusController
 );
 
