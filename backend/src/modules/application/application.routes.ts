@@ -6,6 +6,7 @@ import {
   getApplicationByIdController,
   submitApplicationController,
   updateApplicationStatusController,
+  assignReviewerController,
 } from "./application.controller";
 
 import {
@@ -49,6 +50,13 @@ router.patch(
   authenticate,
   authorize("TENANT_ADMIN"),
   updateApplicationStatusController
+);
+
+router.patch(
+    "/:id/assign-reviewer",
+    authenticate,
+    authorize("TENANT_ADMIN"),
+    assignReviewerController
 );
 
 export default router;

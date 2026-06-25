@@ -146,3 +146,59 @@ export const updateApplicationStatus = async (
 
   return updatedApplication;
 };
+
+export const assignReviewer = async (
+    applicationId: string,
+    reviewerId: string,
+    tenantId: string
+) => {
+    console.log("Application ID:", applicationId);
+    console.log("Tenant ID:", tenantId);
+    const application = await prisma.application.findFirst({
+        where: {
+            id: applicationId,
+            tenantId
+        }
+    });
+    console.log(application);
+    if (!application) {
+        throw new Error("Application not found");
+    }
+
+    if (application.status !== "SUBMITTED") {
+    throw new Error(
+        "Only submitted applications can be assigned to a reviewer"
+    );
+}
+
+    const reviewer = await prisma.user.findFirst({
+        where: {
+            id: reviewerId,
+            tenantId,
+            role: "REVIEWER"
+        }
+    });
+
+    if (!reviewer) {
+        throw new Error("Reviewer not found");
+    }
+
+    return prisma.application.update({
+  where: {
+    id: applicationId,
+  },
+  data: {
+    reviewerId,
+  },
+  include: {
+    reviewer: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+    },
+  },
+});
+};

@@ -5,7 +5,8 @@ import {
   getAllApplications,
   getApplicationById,
   submitApplication,
-  updateApplicationStatus
+  updateApplicationStatus,
+  assignReviewer
 } from "./application.service";
 import { ApplicationStatus } from "@prisma/client";
 
@@ -150,3 +151,31 @@ export const updateApplicationStatusController =
     }
 
   };
+
+export const assignReviewerController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { reviewerId } = req.body;
+
+    const application = await assignReviewer(
+      req.params.id,
+      reviewerId,
+      req.user!.tenantId
+    );
+
+    res.status(200).json({
+      success: true,
+      data: application,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to assign reviewer",
+    });
+  }
+};
