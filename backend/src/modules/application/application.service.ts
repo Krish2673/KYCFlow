@@ -2,6 +2,7 @@ import prisma from "../../config/prisma";
 import { ApplicationStatus } from "@prisma/client";
 import { VALID_TRANSITIONS } from "../../utils/workflow";
 import { createAuditLog } from "../audit/audit.service";
+import { AppError } from "../../errors/AppError";
 
 export const createApplication = async (
   fullName: string,
@@ -61,9 +62,10 @@ export const submitApplication = async (
     });
 
   if (!application) {
-    throw new Error(
-      "Application not found"
-    );
+    throw new AppError(
+    "Application not found",
+    404
+);
   }
 
   const allowedTransitions =
@@ -76,8 +78,9 @@ export const submitApplication = async (
       ApplicationStatus.SUBMITTED
     )
   ) {
-    throw new Error(
-      `Cannot move from ${application.status} to SUBMITTED`
+    throw new AppError(
+      `Cannot move from ${application.status} to SUBMITTED`,
+      400
     );
   }
 
@@ -109,7 +112,10 @@ export const updateApplicationStatus = async (
   });
   
   if (!application) {
-    throw new Error("Application not found");
+    throw new AppError(
+    "Application not found",
+    404
+);
   }
 
   const oldStatus = application.status;
@@ -122,8 +128,9 @@ export const updateApplicationStatus = async (
   if (
     !allowedTransitions.includes(newStatus)
   ) {
-    throw new Error(
-      `Cannot move from ${application.status} to ${newStatus}`
+    throw new AppError(
+      `Cannot move from ${application.status} to ${newStatus}`,
+      400
     );
   }
 
@@ -162,12 +169,13 @@ export const assignReviewer = async (
     });
     console.log(application);
     if (!application) {
-        throw new Error("Application not found");
+        throw new AppError("Application not found", 404);
     }
 
     if (application.status !== "SUBMITTED") {
-    throw new Error(
-        "Only submitted applications can be assigned to a reviewer"
+    throw new AppError(
+        "Only submitted applications can be assigned to a reviewer",
+        400
     );
 }
 
@@ -180,7 +188,10 @@ export const assignReviewer = async (
     });
 
     if (!reviewer) {
-        throw new Error("Reviewer not found");
+        throw new AppError(
+    "Reviewer not found",
+    404
+);
     }
 
     return prisma.application.update({

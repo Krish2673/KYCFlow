@@ -9,38 +9,29 @@ import {
   assignReviewer
 } from "./application.service";
 import { ApplicationStatus } from "@prisma/client";
+import { asyncHandler } from "../../utils/asyncHandler";
 
 export const createApplicationController =
-  async (
-    req: Request,
-    res: Response
-  ) => {
-    try {
-      const { fullName, email } = req.body;
+asyncHandler(
 
-      const application =
+async (req, res) => {
+
+    const { fullName, email } = req.body;
+
+    const application =
         await createApplication(
-          fullName,
-          email,
-          req.user!.tenantId,
-          req.user!.userId
+            fullName,
+            email,
+            req.user!.tenantId,
+            req.user!.userId
         );
 
-      res.status(201).json({
+    res.status(201).json({
         success: true,
-        data: application,
-      });
-    } catch (error) {
+        data: application
+    });
 
-  console.error(error);
-
-  res.status(500).json({
-    success: false,
-    message: "Failed to create application",
-    error,
-  });
-}
-  };
+});
 
 export const getAllApplicationsController =
   async (
