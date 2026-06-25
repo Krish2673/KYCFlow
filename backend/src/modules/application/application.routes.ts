@@ -25,6 +25,7 @@ router.post(
   "/",
   authenticate,
   authorize("TENANT_ADMIN"),
+  validate(createApplicationSchema),
   createApplicationController
 );
 
@@ -52,6 +53,7 @@ router.patch(
   authenticate,
   authorize("REVIEWER"),
   verifyAssignedReviewer,
+  validate(updateStatusSchema),
   updateApplicationStatusController
 );
 
@@ -59,6 +61,7 @@ router.patch(
     "/:id/assign-reviewer",
     authenticate,
     authorize("TENANT_ADMIN"),
+    validate(assignReviewerSchema),
     assignReviewerController
 );
 

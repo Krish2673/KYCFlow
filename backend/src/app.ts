@@ -5,6 +5,7 @@ import userRoutes from "./modules/user/user.routes";
 import authRoutes from "./modules/auth/auth.routes";
 import { authenticate } from "./middleware/auth.middleware";
 import applicationRoutes from "./modules/application/application.routes";
+import { errorHandler } from "./middleware/error.middleware";
 
 const app = express();
 

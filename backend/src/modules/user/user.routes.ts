@@ -1,6 +1,8 @@
 // src/modules/user/user.routes.ts
 
 import { Router } from "express";
+import { validate } from "../../middleware/validate.middleware"
+import { createUserSchema } from "../../validators/user.validator";
 
 import {
   createUserController,
@@ -10,7 +12,7 @@ import {
 
 const router = Router();
 
-router.post("/", createUserController);
+router.post("/", validate(createUserSchema), createUserController);
 
 router.get("/", getAllUsersController);
 

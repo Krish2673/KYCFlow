@@ -26,10 +26,12 @@ async (req, res) => {
             req.user!.userId
         );
 
-    res.status(201).json({
-        success: true,
-        data: application
-    });
+    return sendResponse(
+    res,
+    201,
+    MESSAGES.APPLICATION_CREATED,
+    application
+);
 
 });
 

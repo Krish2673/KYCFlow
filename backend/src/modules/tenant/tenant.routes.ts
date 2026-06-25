@@ -12,7 +12,7 @@ import {
 
 const router = Router();
 
-router.post("/", authenticate, authorize("TENANT_ADMIN"), createTenantController);
+router.post("/", authenticate, authorize("TENANT_ADMIN"), validate(createTenantSchema), createTenantController);
 // router.post("/", createTenantController);
 
 router.get("/", authenticate, authorize("TENANT_ADMIN"), getAllTenantsController);
