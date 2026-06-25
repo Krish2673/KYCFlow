@@ -41,15 +41,47 @@ export const getAllApplicationsController =
     res: Response
   ) => {
 
-    const applications =
-      await getAllApplications(
-        req.user!.tenantId
-      );
+    const filters = {
 
-    res.status(200).json({
-      success: true,
-      data: applications,
-    });
+    page:
+        Number(req.query.page) || 1,
+
+    limit:
+        Number(req.query.limit) || 10,
+
+    status:
+        req.query.status,
+
+    reviewerId:
+        req.query.reviewerId,
+
+    search:
+        req.query.search,
+
+};
+
+  const result =
+await getAllApplications(
+
+    req.user!.tenantId,
+
+    filters
+
+);
+
+    sendResponse(
+
+    res,
+
+    200,
+
+    MESSAGES.APPLICATIONS_FETCHED,
+
+    result.applications,
+
+    result.meta
+
+);
   };
 
 export const getApplicationByIdController =

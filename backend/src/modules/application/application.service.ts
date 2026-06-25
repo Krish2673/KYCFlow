@@ -3,6 +3,7 @@ import { ApplicationStatus } from "@prisma/client";
 import { VALID_TRANSITIONS } from "../../utils/workflow";
 import { createAuditLog } from "../audit/audit.service";
 import { AppError } from "../../errors/AppError";
+import { ApplicationFilters } from "./application.types";
 
 export const createApplication = async (
   fullName: string,
@@ -21,16 +22,104 @@ export const createApplication = async (
 };
 
 export const getAllApplications = async (
-  tenantId: string
+  tenantId: string,
+  filters: ApplicationFilters
 ) => {
-  return prisma.application.findMany({
-    where: {
-      tenantId,
-    },
+  const {
+    page,
+    limit,
+    status,
+    reviewerId,
+    search,
+  } = filters;
+
+  const skip = (page - 1) * limit;
+
+  const whereClause: any = {
+    tenantId,
+  };
+
+  if (status) {
+    whereClause.status = status;
+  }
+
+if (reviewerId) {
+    whereClause.reviewerId = reviewerId;
+}
+
+if (search) {
+
+    whereClause.OR = [
+
+        {
+            fullName: {
+                contains: search,
+                mode: "insensitive",
+            },
+        },
+
+        {
+            email: {
+                contains: search,
+                mode: "insensitive",
+            },
+        },
+
+    ];
+  }
+  
+  const applications =
+await prisma.application.findMany({
+
+    where: whereClause,
+
+    skip,
+
+    take: limit,
+
     include: {
-      createdBy: true,
+
+        reviewer: true,
+
+        createdBy: true,
+
     },
-  });
+
+    orderBy: {
+
+        createdAt: "desc",
+
+    },
+
+});
+
+  const total =
+await prisma.application.count({
+
+    where: whereClause,
+
+});
+
+  const totalPages =
+Math.ceil(total / limit);
+
+  return {
+
+    applications,
+
+    meta: {
+
+        page,
+
+        limit,
+
+        total,
+
+        totalPages,
+
+    },
+
+};
 };
 
 export const getApplicationById = async (
