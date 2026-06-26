@@ -3,6 +3,8 @@
 import { Router } from "express";
 import { authenticate } from "../../middleware/auth.middleware";
 import { authorize } from "../../middleware/role.middleware";
+import { validate } from "../../middleware/validate.middleware";
+import { createTenantSchema } from "../../validators/tenant.validator";
 
 import {
   createTenantController,

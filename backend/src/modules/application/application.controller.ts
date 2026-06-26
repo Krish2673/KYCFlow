@@ -6,10 +6,12 @@ import {
   getApplicationById,
   submitApplication,
   updateApplicationStatus,
-  assignReviewer
+  assignReviewer,
+  getMyApplications,
 } from "./application.service";
 import { ApplicationStatus } from "@prisma/client";
 import { asyncHandler } from "../../utils/asyncHandler";
+import { sendResponse } from "../../utils/sendResponse";
 
 export const createApplicationController =
 asyncHandler(
@@ -204,3 +206,50 @@ export const assignReviewerController = async (
     });
   }
 };
+
+export const getMyApplicationsController =
+asyncHandler(
+
+async (req, res) => {
+  const filters = {
+
+    page:
+        Number(req.query.page) || 1,
+
+    limit:
+        Number(req.query.limit) || 10,
+
+    status:
+        req.query.status as ApplicationStatus,
+
+    search:
+        req.query.search as string,
+
+};
+
+  const result =
+await getMyApplications(
+
+    req.user!.userId,
+
+    req.user!.tenantId,
+
+    filters
+
+);
+
+return sendResponse(
+
+    res,
+
+    200,
+
+    "Applications fetched successfully",
+
+    result.applications,
+
+    result.meta
+
+);
+
+});

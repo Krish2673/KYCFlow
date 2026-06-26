@@ -7,6 +7,7 @@ import {
   submitApplicationController,
   updateApplicationStatusController,
   assignReviewerController,
+  getMyApplicationsController,
 } from "./application.controller";
 
 import {
@@ -18,6 +19,10 @@ import {
 } from "../../middleware/role.middleware";
 
 import { verifyAssignedReviewer } from "../../middleware/reviewer.middleware";
+
+import { validate } from "../../middleware/validate.middleware";
+
+import { createApplicationSchema, updateStatusSchema, assignReviewerSchema } from "../../validators/application.validator";
 
 const router = Router();
 
@@ -33,6 +38,13 @@ router.get(
   "/",
   authenticate,
   getAllApplicationsController
+);
+
+router.get(
+    "/my",
+    authenticate,
+    authorize("REVIEWER"),
+    getMyApplicationsController
 );
 
 router.get(
@@ -64,5 +76,6 @@ router.patch(
     validate(assignReviewerSchema),
     assignReviewerController
 );
+
 
 export default router;

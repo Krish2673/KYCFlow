@@ -302,3 +302,105 @@ export const assignReviewer = async (
   },
 });
 };
+
+export const getMyApplications = async (
+    reviewerId: string,
+    tenantId: string,
+    filters: ApplicationFilters
+) => {
+  const {
+    page,
+    limit,
+    status,
+    search,
+} = filters;
+
+  const skip = (page - 1) * limit;
+
+  const whereClause: any = {
+
+    tenantId,
+
+    reviewerId,
+
+};
+
+  if (status) {
+    whereClause.status = status;
+}
+
+  if (search) {
+
+    whereClause.OR = [
+
+        {
+            fullName: {
+                contains: search,
+                mode: "insensitive",
+            },
+        },
+
+        {
+            email: {
+                contains: search,
+                mode: "insensitive",
+            },
+        },
+
+    ];
+
+}
+
+  const applications =
+await prisma.application.findMany({
+
+    where: whereClause,
+
+    skip,
+
+    take: limit,
+
+    include: {
+      createdBy: {
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true
+        }
+    }
+    },
+
+    orderBy: {
+
+        createdAt: "desc",
+
+    },
+
+});
+
+  const total =
+await prisma.application.count({
+
+    where: whereClause,
+
+});
+
+return {
+
+    applications,
+
+    meta: {
+
+        page,
+
+        limit,
+
+        total,
+
+        totalPages:
+            Math.ceil(total / limit),
+
+    },
+  };
+}
