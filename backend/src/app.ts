@@ -6,6 +6,7 @@ import authRoutes from "./modules/auth/auth.routes";
 import { authenticate } from "./middleware/auth.middleware";
 import applicationRoutes from "./modules/application/application.routes";
 import { errorHandler } from "./middleware/error.middleware";
+import documentRoutes from "./modules/document/document.routes";
 
 const app = express();
 
@@ -23,19 +24,14 @@ app.use("/api/v1/tenants", tenantRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/applications", applicationRoutes);
-app.get(
-  "/me",
-  authenticate,
-  (req, res) => {
-    
+app.get("/me",authenticate,(req, res) => {
     res.json({
       success: true,
       user: req.user,
     });
-    
   }
 );
-
+app.use("/api/v1/documents", documentRoutes);
 app.use(errorHandler);
 
 export default app;

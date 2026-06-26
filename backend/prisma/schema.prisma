@@ -23,6 +23,15 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum DocumentType {
+  AADHAAR
+  PAN
+  PASSPORT
+  DRIVING_LICENSE
+  BANK_STATEMENT
+  SELFIE
+}
+
 model Tenant {
   id           String @id @default(cuid())
 
@@ -71,6 +80,7 @@ model Application {
   reviewer    User? @relation("AssignedApplications", fields: [reviewerId], references: [id])
 
   auditLogs AuditLog[]
+  documents Document[]
 
   createdById String
   createdBy   User @relation("CreatedApplications", fields: [createdById], references: [id])
@@ -93,4 +103,21 @@ model AuditLog {
   toStatus ApplicationStatus
 
   createdAt DateTime @default(now())
+}
+
+model Document {
+
+  id String @id @default(cuid())
+
+  type DocumentType
+
+  path String @default("")
+
+  verified Boolean @default(false)
+
+  uploadedAt DateTime @default(now())
+
+  applicationId String
+
+  application Application @relation( fields: [applicationId], references: [id])
 }
