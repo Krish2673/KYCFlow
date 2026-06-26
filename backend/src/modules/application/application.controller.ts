@@ -8,6 +8,7 @@ import {
   updateApplicationStatus,
   assignReviewer,
   getMyApplications,
+  getApplicationMetrics,
 } from "./application.service";
 import { ApplicationStatus } from "@prisma/client";
 import { asyncHandler } from "../../utils/asyncHandler";
@@ -251,5 +252,24 @@ return sendResponse(
     result.meta
 
 );
+
+});
+
+export const getApplicationMetricsController =
+asyncHandler(
+
+async (req, res) => {
+
+    const metrics =
+    await getApplicationMetrics(
+        req.user!.tenantId
+    );
+
+    return sendResponse(
+        res,
+        200,
+        "Metrics fetched successfully",
+        metrics
+    );
 
 });

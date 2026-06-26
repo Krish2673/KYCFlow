@@ -8,6 +8,7 @@ import {
   updateApplicationStatusController,
   assignReviewerController,
   getMyApplicationsController,
+  getApplicationMetricsController,
 } from "./application.controller";
 
 import {
@@ -45,6 +46,12 @@ router.get(
     authenticate,
     authorize("REVIEWER"),
     getMyApplicationsController
+);
+
+router.get(
+    "/metrics",
+    authenticate,
+    getApplicationMetricsController
 );
 
 router.get(

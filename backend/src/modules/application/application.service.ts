@@ -404,3 +404,89 @@ return {
     },
   };
 }
+
+export const getApplicationMetrics = async (
+    tenantId: string
+) => {
+  const total = await prisma.application.count({
+    where: {
+        tenantId,
+    },
+});
+
+  const draft = await prisma.application.count({
+    where: {
+        tenantId,
+        status: "DRAFT",
+    },
+});
+
+  const submitted = await prisma.application.count({
+    where: {
+        tenantId,
+        status: "SUBMITTED",
+    },
+});
+
+const documentVerification =
+await prisma.application.count({
+    where: {
+        tenantId,
+        status: "DOCUMENT_VERIFICATION",
+    },
+});
+
+const riskAssessment =
+await prisma.application.count({
+    where: {
+        tenantId,
+        status: "RISK_ASSESSMENT",
+    },
+});
+
+const manualReview =
+await prisma.application.count({
+    where: {
+        tenantId,
+        status: "MANUAL_REVIEW",
+    },
+});
+
+const approved =
+await prisma.application.count({
+    where: {
+        tenantId,
+        status: "APPROVED",
+    },
+});
+
+const rejected =
+await prisma.application.count({
+    where: {
+        tenantId,
+        status: "REJECTED",
+    },
+});
+
+  return {
+    total,
+    draft,
+    submitted,
+    documentVerification,
+    riskAssessment,
+    manualReview,
+    approved,
+    rejected,
+};
+
+// const grouped =
+// await prisma.application.groupBy({
+//     by: ["status"],
+//     where: {
+//         tenantId,
+//     },
+//     _count: {
+//         status: true,
+//     },
+// });
+};
