@@ -490,3 +490,121 @@ await prisma.application.count({
 //     },
 // });
 };
+
+export const calculateRisk = async (
+    applicationId: string,
+    tenantId: string
+) => {
+
+  const application =
+await prisma.application.findFirst({
+
+    where: {
+        id: applicationId,
+        tenantId,
+    },
+
+    include: {
+        documents: true,
+    },
+
+});
+
+  if (!application) {
+    throw new AppError(
+        "Application not found",
+        404
+    );
+}
+
+  let riskScore = 0;
+
+const reasons: string[] = [];
+
+  const pan =
+application.documents.find(
+    doc => doc.type === "PAN"
+);
+
+if (pan) {
+
+    riskScore += 20;
+    reasons.push("PAN uploaded");
+
+    if (pan.verified) {
+        riskScore += 20;
+        reasons.push("PAN verified");
+    }
+}
+
+  const aadhaar =
+application.documents.find(
+    doc => doc.type === "AADHAAR"
+);
+
+if (aadhaar) {
+
+    riskScore += 20;
+    reasons.push("AADHAAR uploaded");
+
+    if (aadhaar.verified) {
+        riskScore += 20;
+        reasons.push("AADHAAR verified");
+    }
+}
+
+  const passport =
+application.documents.find(
+    doc => doc.type === "PASSPORT"
+);
+
+if (passport) {
+    riskScore += 10;
+    reasons.push("Passport uploaded");
+}
+
+  if (application.reviewerId) {
+    riskScore += 10;
+    reasons.push("Reviewer assigned");
+}
+  if (
+    application.status ===
+    "MANUAL_REVIEW"
+) {
+    riskScore += 10;
+    reasons.push("Application reached manual review");
+}
+
+  const unverifiedDocs =
+application.documents.filter(
+    doc => !doc.verified
+);
+
+if (unverifiedDocs.length > 0) {
+
+    riskScore -= 10;
+
+    reasons.push(
+        `${unverifiedDocs.length} document(s) pending verification`
+    );
+
+}
+
+  let riskLevel;
+
+if (riskScore >= 80) {
+    riskLevel = "LOW";
+}
+else if (riskScore >= 50) {
+    riskLevel = "MEDIUM";
+}
+else {
+    riskLevel = "HIGH";
+}
+  
+  return {
+    riskScore,
+    riskLevel,
+    reasons,
+};
+};

@@ -9,6 +9,7 @@ import {
   assignReviewer,
   getMyApplications,
   getApplicationMetrics,
+  calculateRisk
 } from "./application.service";
 import { ApplicationStatus } from "@prisma/client";
 import { asyncHandler } from "../../utils/asyncHandler";
@@ -270,6 +271,34 @@ async (req, res) => {
         200,
         "Metrics fetched successfully",
         metrics
+    );
+
+});
+
+export const getRiskAssessmentController =
+asyncHandler(
+
+async (req, res) => {
+
+    const result =
+    await calculateRisk(
+
+        req.params.id,
+
+        req.user!.tenantId
+
+    );
+
+    return sendResponse(
+
+        res,
+
+        200,
+
+        "Risk assessment completed",
+
+        result
+
     );
 
 });

@@ -9,6 +9,7 @@ import {
   assignReviewerController,
   getMyApplicationsController,
   getApplicationMetricsController,
+  getRiskAssessmentController
 } from "./application.controller";
 
 import {
@@ -52,6 +53,13 @@ router.get(
     "/metrics",
     authenticate,
     getApplicationMetricsController
+);
+
+router.get(
+    "/:id/risk",
+    authenticate,
+    getRiskAssessmentController
+
 );
 
 router.get(
