@@ -517,9 +517,14 @@ await prisma.application.findFirst({
     );
 }
 
-  let riskScore = 0;
+  let trustScore = 0;
 
-const reasons: string[] = [];
+  let decision:
+    | "APPROVED"
+    | "MANUAL_REVIEW"
+    | "REJECT";
+
+  const reasons: string[] = [];
 
   const pan =
 application.documents.find(
@@ -528,13 +533,22 @@ application.documents.find(
 
 if (pan) {
 
-    riskScore += 20;
+    trustScore += 5;
     reasons.push("PAN uploaded");
 
     if (pan.verified) {
-        riskScore += 20;
+        trustScore += 20;
         reasons.push("PAN verified");
+    } else {
+        trustScore -= 15;
+        reasons.push("PAN pending verification");
     }
+
+} else {
+
+    trustScore -= 30;
+    reasons.push("Mandatory PAN missing");
+
 }
 
   const aadhaar =
@@ -544,13 +558,22 @@ application.documents.find(
 
 if (aadhaar) {
 
-    riskScore += 20;
+    trustScore += 5;
     reasons.push("AADHAAR uploaded");
 
     if (aadhaar.verified) {
-        riskScore += 20;
+        trustScore += 20;
         reasons.push("AADHAAR verified");
+    } else {
+        trustScore -= 15;
+        reasons.push("AADHAAR pending verification");
     }
+
+} else {
+
+    trustScore -= 30;
+    reasons.push("Mandatory AADHAAR missing");
+
 }
 
   const passport =
@@ -559,52 +582,83 @@ application.documents.find(
 );
 
 if (passport) {
-    riskScore += 10;
+
+    trustScore += 5;
     reasons.push("Passport uploaded");
+
+    if (passport.verified) {
+        trustScore += 15;
+        reasons.push("Passport verified");
+    }
+
+}
+
+  const bankStatement =
+application.documents.find(
+    doc => doc.type === "BANK_STATEMENT"
+);
+
+if (bankStatement) {
+
+    trustScore += 5;
+    reasons.push("Bank statement uploaded");
+
+    if (bankStatement.verified) {
+        trustScore += 10;
+        reasons.push("Bank statement verified");
+    }
+
 }
 
   if (application.reviewerId) {
-    riskScore += 10;
+    trustScore += 10;
     reasons.push("Reviewer assigned");
 }
   if (
     application.status ===
-    "MANUAL_REVIEW"
+    "DOCUMENT_VERIFICATION"
 ) {
-    riskScore += 10;
-    reasons.push("Application reached manual review");
-}
 
-  const unverifiedDocs =
-application.documents.filter(
-    doc => !doc.verified
-);
-
-if (unverifiedDocs.length > 0) {
-
-    riskScore -= 10;
+    trustScore += 10;
 
     reasons.push(
-        `${unverifiedDocs.length} document(s) pending verification`
+        "Passed submission stage"
     );
 
 }
 
-  let riskLevel;
+if (
+    application.status ===
+    "MANUAL_REVIEW"
+) {
 
-if (riskScore >= 80) {
-    riskLevel = "LOW";
+    trustScore += 5;
+
+    reasons.push(
+        "Reached manual review stage"
+    );
+
 }
-else if (riskScore >= 50) {
-    riskLevel = "MEDIUM";
+
+  if (trustScore >= 85) {
+
+    decision = "APPROVED";
+
+}
+else if (trustScore >= 60) {
+
+    decision = "MANUAL_REVIEW";
+
 }
 else {
-    riskLevel = "HIGH";
+
+    decision = "REJECT";
+
 }
   
   return {
-    riskScore,
-    riskLevel,
+    trustScore,
+    decision,
     reasons,
 };
 };
