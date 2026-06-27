@@ -7,11 +7,18 @@ import { authenticate } from "./middleware/auth.middleware";
 import applicationRoutes from "./modules/application/application.routes";
 import { errorHandler } from "./middleware/error.middleware";
 import documentRoutes from "./modules/document/document.routes";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec)
+);
 
 app.get("/health", (_, res) => {
   res.status(200).json({
