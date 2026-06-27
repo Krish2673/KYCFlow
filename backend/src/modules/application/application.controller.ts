@@ -9,12 +9,13 @@ import {
   assignReviewer,
   getMyApplications,
   getApplicationMetrics,
-  calculateRisk
+  calculateRisk,
+  getApplicationAuditLogs
 } from "./application.service";
 import { ApplicationStatus } from "@prisma/client";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { sendResponse } from "../../utils/sendResponse";
-import getApplicationAuditLogs = require("./application.service");
+import { MESSAGES } from "../../constants/messages";
 
 export const createApplicationController =
 asyncHandler(

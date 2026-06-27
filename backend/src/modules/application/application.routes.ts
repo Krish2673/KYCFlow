@@ -9,7 +9,9 @@ import {
   assignReviewerController,
   getMyApplicationsController,
   getApplicationMetricsController,
-  getRiskAssessmentController
+  getRiskAssessmentController,
+  getApplicationAuditLogsController,
+  getMeController
 } from "./application.controller";
 
 import {
@@ -25,8 +27,6 @@ import { verifyAssignedReviewer } from "../../middleware/reviewer.middleware";
 import { validate } from "../../middleware/validate.middleware";
 
 import { createApplicationSchema, updateStatusSchema, assignReviewerSchema } from "../../validators/application.validator";
-import getApplicationAuditLogsController = require("./application.controller");
-import getMeController = require("./application.controller");
 
 const router = Router();
 
