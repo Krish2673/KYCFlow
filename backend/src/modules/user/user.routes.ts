@@ -3,6 +3,8 @@
 import { Router } from "express";
 import { validate } from "../../middleware/validate.middleware"
 import { createUserSchema } from "../../validators/user.validator";
+import { authenticate } from "../../middleware/auth.middleware";
+import { authorize } from "../../middleware/role.middleware";
 
 import {
   createUserController,
@@ -12,10 +14,12 @@ import {
 
 const router = Router();
 
-router.post("/", validate(createUserSchema), createUserController);
+router.use(authenticate);
 
-router.get("/", getAllUsersController);
+router.post("/", validate(createUserSchema), authorize("TENANT_ADMIN"), createUserController);
 
-router.get("/:id", getUserByIdController);
+router.get("/", authorize("TENANT_ADMIN"), getAllUsersController);
+
+router.get("/:id", authorize("TENANT_ADMIN"), getUserByIdController);
 
 export default router;

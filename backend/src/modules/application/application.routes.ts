@@ -25,6 +25,8 @@ import { verifyAssignedReviewer } from "../../middleware/reviewer.middleware";
 import { validate } from "../../middleware/validate.middleware";
 
 import { createApplicationSchema, updateStatusSchema, assignReviewerSchema } from "../../validators/application.validator";
+import getApplicationAuditLogsController = require("./application.controller");
+import getMeController = require("./application.controller");
 
 const router = Router();
 
@@ -50,9 +52,21 @@ router.get(
 );
 
 router.get(
+    "/me",
+    authenticate,
+    getMeController
+);
+
+router.get(
     "/metrics",
     authenticate,
     getApplicationMetricsController
+);
+
+router.get(
+    "/:id/audit-logs",
+    authenticate,
+    getApplicationAuditLogsController
 );
 
 router.get(

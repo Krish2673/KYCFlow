@@ -132,8 +132,25 @@ export const getApplicationById = async (
       tenantId,
     },
     include: {
-      createdBy: true,
+
+    reviewer: {
+        select: {
+            id: true,
+            name: true,
+            email: true
+        }
     },
+
+    documents: {
+        select: {
+            id: true,
+            type: true,
+            verified: true,
+            uploadedAt: true
+        }
+    }
+
+},
   });
 };
 
@@ -661,4 +678,65 @@ else {
     decision,
     reasons,
 };
+};
+
+export const getApplicationAuditLogs = async (
+    applicationId: string,
+    tenantId: string
+) => {
+
+    return prisma.auditLog.findMany({
+
+        where: {
+            applicationId,
+            application: {
+                tenantId
+            }
+        },
+
+        include: {
+            performedBy: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true
+                }
+            }
+        },
+
+        orderBy: {
+            createdAt: "desc"
+        }
+
+    });
+
+};
+
+export const getMe = async (
+    userId: string
+) => {
+
+    return prisma.user.findUnique({
+
+        where: {
+            id: userId
+        },
+
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+
+            tenant: {
+                select: {
+                    id: true,
+                    name: true
+                }
+            }
+        }
+
+    });
+
 };

@@ -14,6 +14,7 @@ import {
 import { ApplicationStatus } from "@prisma/client";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { sendResponse } from "../../utils/sendResponse";
+import getApplicationAuditLogs = require("./application.service");
 
 export const createApplicationController =
 asyncHandler(
@@ -299,6 +300,41 @@ async (req, res) => {
 
         result
 
+    );
+
+});
+
+export const getApplicationAuditLogsController =
+asyncHandler(async (req, res) => {
+
+    const logs =
+    await getApplicationAuditLogs(
+        req.params.id,
+        req.user!.tenantId
+    );
+
+    return sendResponse(
+        res,
+        200,
+        "Audit logs fetched successfully",
+        logs
+    );
+
+});
+
+export const getMeController =
+asyncHandler(async (req, res) => {
+
+    const user =
+    await getMe(
+        req.user!.userId
+    );
+
+    return sendResponse(
+        res,
+        200,
+        "Profile fetched successfully",
+        user
     );
 
 });
