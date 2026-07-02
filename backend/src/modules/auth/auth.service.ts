@@ -27,21 +27,38 @@ export const loginUser = async (
     throw new AppError("Invalid credentials", 401);
   }
 
-  const token = jwt.sign(
+  const accessToken = jwt.sign(
     {
-      userId: user.id,
-      tenantId: user.tenantId,
-      role: user.role,
+        userId: user.id,
+        tenantId: user.tenantId,
+        role: user.role,
     },
     process.env.JWT_SECRET!,
     {
-      expiresIn: "1d",
+        expiresIn: "15m",
     }
-  );
+);
+
+const refreshToken = jwt.sign(
+    {
+        userId: user.id,
+    },
+    process.env.JWT_REFRESH_SECRET!,
+    {
+        expiresIn: "7d",
+    }
+);
+
+  await redisClient.set(
+    `refresh:${user.id}`,
+    refreshToken,
+    "EX",
+    7 * 24 * 60 * 60
+);
 
   return {
-    token,
-
+    accessToken,
+    refreshToken,
     user: {
       id: user.id,
       name: user.name,
@@ -79,5 +96,74 @@ async (
     "EX",
     ttl
 );
+
+};
+
+export const refreshAccessToken =
+async (
+    refreshToken: string
+) => {
+
+    const decoded =
+    jwt.verify(
+
+        refreshToken,
+
+        process.env
+            .JWT_REFRESH_SECRET!
+
+    ) as {
+
+        userId: string
+
+    };
+
+    const storedToken =
+    await redisClient.get(
+        `refresh:${decoded.userId}`
+    );
+
+    if (
+        storedToken !==
+        refreshToken
+    ) {
+
+        throw new AppError(
+            "Invalid refresh token",
+            401
+        );
+
+    }
+
+    const user =
+    await prisma.user.findUnique({
+        where: {
+            id: decoded.userId
+        }
+    });
+
+    if (!user) {
+        throw new AppError(
+            "User not found",
+            404
+        );
+    }
+
+    const accessToken =
+    jwt.sign(
+        {
+            userId: user.id,
+            tenantId: user.tenantId,
+            role: user.role,
+        },
+        process.env.JWT_SECRET!,
+        {
+            expiresIn: "15m"
+        }
+    );
+
+    return {
+        accessToken
+    };
 
 };

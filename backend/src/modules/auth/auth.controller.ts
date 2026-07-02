@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { loginUser, blacklistToken } from "./auth.service";
+import { loginUser, blacklistToken, refreshAccessToken } from "./auth.service";
 import { AppError } from "../../errors/AppError";
 import { sendResponse } from "../../utils/sendResponse";
 
@@ -46,12 +46,45 @@ if (!authHeader?.startsWith("Bearer ")) {
 const token =
     authHeader.split(" ")[1];
 
-await blacklistToken(token);
+const decoded =
+jwt.verify(
+    token,
+    process.env.JWT_SECRET!
+) as {
+    userId: string
+};
+
+await redisClient.del(
+    `refresh:${decoded.userId}`
+);
+
+  await blacklistToken(
+    token
+);
 
     return sendResponse(
         res,
         200,
         "Logged out successfully"
+    );
+
+};
+
+export const refreshTokenController = async (req, res) => {
+
+    const { refreshToken } =
+        req.body;
+
+    const result =
+        await refreshAccessToken(
+            refreshToken
+        );
+
+    return sendResponse(
+        res,
+        200,
+        "Access token refreshed",
+        result
     );
 
 };

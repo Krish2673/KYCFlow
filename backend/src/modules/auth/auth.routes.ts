@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { loginController, logoutController } from "./auth.controller";
+import { loginController, logoutController, refreshTokenController } from "./auth.controller";
 import { loginLimiter } from "../../middleware/rateLimiter.middleware";
 import { authenticate } from "../../middleware/auth.middleware";
 
@@ -39,6 +39,11 @@ router.post(
     "/logout",
     authenticate,
     logoutController
+);
+
+router.post(
+    "/refresh",
+    refreshTokenController
 );
 
 export default router;
