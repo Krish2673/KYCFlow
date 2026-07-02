@@ -1,8 +1,8 @@
 import { Router } from "express";
 
-import {
-  loginController,
-} from "./auth.controller";
+import { loginController, logoutController } from "./auth.controller";
+import { loginLimiter } from "../../middleware/rateLimiter.middleware";
+import { authenticate } from "../../middleware/auth.middleware";
 
 const router = Router();
 
@@ -31,7 +31,14 @@ const router = Router();
 
 router.post(
   "/login",
+  loginLimiter,
   loginController
+);
+
+router.post(
+    "/logout",
+    authenticate,
+    logoutController
 );
 
 export default router;

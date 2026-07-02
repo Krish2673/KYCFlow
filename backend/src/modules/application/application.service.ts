@@ -537,10 +537,9 @@ await prisma.application.count({
   await redisClient.set(
     cacheKey,
     JSON.stringify(metrics),
-    {
-      EX: 300,
-    }
-  );
+    "EX",
+    300
+);
 
   return metrics;
 
@@ -634,12 +633,11 @@ export const getReviewerMetrics = async (
     };
 
     await redisClient.set(
-        cacheKey,
-        JSON.stringify(metrics),
-        {
-            EX: 300,
-        }
-    );
+    cacheKey,
+    JSON.stringify(metrics),
+    "EX",
+    300
+);
 
     return metrics;
 };

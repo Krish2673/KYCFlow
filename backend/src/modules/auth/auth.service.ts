@@ -1,6 +1,7 @@
 import prisma from "../../config/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { redisClient } from "../../config/redis";
 
 export const loginUser = async (
   email: string,
@@ -49,4 +50,34 @@ export const loginUser = async (
       tenantId: user.tenantId,
     },
   };
+};
+
+export const blacklistToken =
+async (
+    token: string
+) => {
+
+    const decoded = jwt.decode(token) as jwt.JwtPayload;
+
+    if (!decoded?.exp) {
+        return;
+    }
+
+    const ttl =
+        decoded.exp -
+        Math.floor(
+            Date.now() / 1000
+        );
+
+    if (ttl <= 0) {
+        return;
+    }
+
+    await redisClient.set(
+    `blacklist:${token}`,
+    "true",
+    "EX",
+    ttl
+);
+
 };

@@ -1,12 +1,9 @@
-// src/middleware/auth.middleware.ts
-
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { redisClient } from "../config/redis";
+import { AppError } from "../errors/AppError";
 
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-
-export const authenticate = (
+export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -25,6 +22,19 @@ export const authenticate = (
 
     const token = authHeader.split(" ")[1];
 
+    const blacklisted = await redisClient.get(
+    `blacklist:${token}`
+);
+
+if (blacklisted) {
+
+    throw new AppError(
+        "Token has been invalidated",
+        401
+    );
+
+}
+
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET!
@@ -39,10 +49,12 @@ export const authenticate = (
     next();
 
   } catch (error) {
-
+    console.log(error);
     return res.status(401).json({
       success: false,
-      message: "Invalid Token",
+      message: error instanceof Error
+                ? error.message
+                : "Invalid Token",
     });
 
   }
