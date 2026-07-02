@@ -4,6 +4,14 @@ export const redisClient = new Redis(
     process.env.REDIS_URL || "redis://localhost:6379"
 );
 
+export const bullRedisConnection =
+  new Redis(
+    process.env.REDIS_URL!,
+    {
+      maxRetriesPerRequest: null,
+    }
+  );
+
 redisClient.on(
     "connect",
     () => {

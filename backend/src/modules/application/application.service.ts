@@ -5,6 +5,7 @@ import { createAuditLog } from "../audit/audit.service";
 import { AppError } from "../../errors/AppError";
 import { ApplicationFilters } from "./application.types";
 import { redisClient } from "../../config/redis";
+import { queueEmail } from "../../jobs/email.job";
 
 export const createApplication = async (
   fullName: string,
@@ -259,11 +260,9 @@ export const updateApplicationStatus = async (
 
   await redisClient.del(`metrics:${tenantId}`);
   if (application.reviewerId) {
-
     await redisClient.del(
         `reviewer_metrics:${application.reviewerId}`
     );
-
 }
 
   await createAuditLog(
@@ -272,6 +271,26 @@ export const updateApplicationStatus = async (
   oldStatus,
   newStatus
 );
+
+    if (newStatus === "APPROVED") {
+
+    await queueEmail(
+        application.email,
+        "KYC Application Approved",
+        `Congratulations ${application.fullName}! Your KYC application has been approved successfully.`
+    );
+
+}
+
+if (newStatus === "REJECTED") {
+
+    await queueEmail(
+        application.email,
+        "KYC Application Rejected",
+        `Hello ${application.fullName}, unfortunately your KYC application has been rejected. Please contact support for more information.`
+    );
+
+}
 
   return updatedApplication;
 };
@@ -320,7 +339,7 @@ export const assignReviewer = async (
     `reviewer_metrics:${reviewerId}`
 );
 
-    return prisma.application.update({
+    const updatedApplication = await prisma.application.update({
   where: {
     id: applicationId,
   },
@@ -338,6 +357,15 @@ export const assignReviewer = async (
     },
   },
 });
+
+    await queueEmail(
+    reviewer.email,
+    "New Application Assigned",
+    `Application ${application.fullName} has been assigned to you for review.`
+    );
+
+    return updatedApplication;
+
 };
 
 export const getMyApplications = async (
