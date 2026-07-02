@@ -10,7 +10,8 @@ import {
   getMyApplications,
   getApplicationMetrics,
   calculateRisk,
-  getApplicationAuditLogs
+  getApplicationAuditLogs,
+  getReviewerMetrics
 } from "./application.service";
 import { ApplicationStatus } from "@prisma/client";
 import { asyncHandler } from "../../utils/asyncHandler";
@@ -272,6 +273,26 @@ async (req, res) => {
         res,
         200,
         "Metrics fetched successfully",
+        metrics
+    );
+
+});
+
+export const getReviewerMetricsController =
+asyncHandler(
+
+async (req, res) => {
+
+    const metrics =
+        await getReviewerMetrics(
+            req.user!.userId,
+            req.user!.tenantId
+        );
+
+    return sendResponse(
+        res,
+        200,
+        "Reviewer metrics fetched successfully",
         metrics
     );
 

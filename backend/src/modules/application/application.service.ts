@@ -4,6 +4,7 @@ import { VALID_TRANSITIONS } from "../../utils/workflow";
 import { createAuditLog } from "../audit/audit.service";
 import { AppError } from "../../errors/AppError";
 import { ApplicationFilters } from "./application.types";
+import { redisClient } from "../../config/redis";
 
 export const createApplication = async (
   fullName: string,
@@ -11,7 +12,7 @@ export const createApplication = async (
   tenantId: string,
   createdById: string
 ) => {
-  return prisma.application.create({
+  const application = await prisma.application.create({
     data: {
       fullName,
       email,
@@ -19,6 +20,10 @@ export const createApplication = async (
       createdById,
     },
   });
+
+  await redisClient.del(`metrics:${tenantId}`);
+
+  return application;
 };
 
 export const getAllApplications = async (
@@ -190,6 +195,8 @@ export const submitApplication = async (
     );
   }
 
+  await redisClient.del(`metrics:${tenantId}`);
+
   return prisma.application.update({
     where: {
       id: applicationId,
@@ -250,6 +257,15 @@ export const updateApplicationStatus = async (
     },
   });
 
+  await redisClient.del(`metrics:${tenantId}`);
+  if (application.reviewerId) {
+
+    await redisClient.del(
+        `reviewer_metrics:${application.reviewerId}`
+    );
+
+}
+
   await createAuditLog(
   application.id,
   userId,
@@ -299,6 +315,10 @@ export const assignReviewer = async (
     404
 );
     }
+
+    await redisClient.del(
+    `reviewer_metrics:${reviewerId}`
+);
 
     return prisma.application.update({
   where: {
@@ -425,6 +445,24 @@ return {
 export const getApplicationMetrics = async (
     tenantId: string
 ) => {
+
+  const cacheKey =
+  `metrics:${tenantId}`;
+
+const cachedMetrics =
+  await redisClient.get(cacheKey);
+
+if (cachedMetrics) {
+
+  console.log(
+    "Metrics served from Redis"
+  );
+
+  return JSON.parse(
+    cachedMetrics
+  );
+}
+
   const total = await prisma.application.count({
     where: {
         tenantId,
@@ -485,7 +523,7 @@ await prisma.application.count({
     },
 });
 
-  return {
+  const metrics = {
     total,
     draft,
     submitted,
@@ -494,7 +532,17 @@ await prisma.application.count({
     manualReview,
     approved,
     rejected,
-};
+  };
+
+  await redisClient.set(
+    cacheKey,
+    JSON.stringify(metrics),
+    {
+      EX: 300,
+    }
+  );
+
+  return metrics;
 
 // const grouped =
 // await prisma.application.groupBy({
@@ -506,6 +554,94 @@ await prisma.application.count({
 //         status: true,
 //     },
 // });
+};
+
+export const getReviewerMetrics = async (
+    reviewerId: string,
+    tenantId: string
+) => {
+
+    const cacheKey =
+        `reviewer_metrics:${tenantId}:${reviewerId}`;
+
+    const cachedMetrics =
+        await redisClient.get(cacheKey);
+
+    if (cachedMetrics) {
+
+        console.log(
+            "Reviewer metrics served from Redis"
+        );
+
+        return JSON.parse(cachedMetrics);
+
+    }
+
+    const assigned =
+        await prisma.application.count({
+            where: {
+                tenantId,
+                reviewerId,
+            },
+        });
+
+    const documentVerification =
+        await prisma.application.count({
+            where: {
+                tenantId,
+                reviewerId,
+                status:
+                    "DOCUMENT_VERIFICATION",
+            },
+        });
+
+    const manualReview =
+        await prisma.application.count({
+            where: {
+                tenantId,
+                reviewerId,
+                status:
+                    "MANUAL_REVIEW",
+            },
+        });
+
+    const approved =
+        await prisma.application.count({
+            where: {
+                tenantId,
+                reviewerId,
+                status:
+                    "APPROVED",
+            },
+        });
+
+    const rejected =
+        await prisma.application.count({
+            where: {
+                tenantId,
+                reviewerId,
+                status:
+                    "REJECTED",
+            },
+        });
+
+    const metrics = {
+        assigned,
+        documentVerification,
+        manualReview,
+        approved,
+        rejected,
+    };
+
+    await redisClient.set(
+        cacheKey,
+        JSON.stringify(metrics),
+        {
+            EX: 300,
+        }
+    );
+
+    return metrics;
 };
 
 export const calculateRisk = async (
@@ -740,3 +876,4 @@ export const getMe = async (
     });
 
 };
+

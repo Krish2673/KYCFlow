@@ -11,7 +11,8 @@ import {
   getApplicationMetricsController,
   getRiskAssessmentController,
   getApplicationAuditLogsController,
-  getMeController
+  getMeController,
+  getReviewerMetricsController
 } from "./application.controller";
 
 import {
@@ -42,6 +43,18 @@ router.get(
   "/",
   authenticate,
   getAllApplicationsController
+);
+
+router.get(
+    "/my/metrics",
+
+    authenticate,
+
+    authorize(
+        "REVIEWER"
+    ),
+
+    getReviewerMetricsController
 );
 
 router.get(
