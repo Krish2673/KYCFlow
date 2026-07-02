@@ -6,6 +6,7 @@ import { AppError } from "../../errors/AppError";
 import { ApplicationFilters } from "./application.types";
 import { redisClient } from "../../config/redis";
 import { queueEmail } from "../../jobs/email.job";
+import { reviewerAssignedTemplate, applicationRejectedTemplate, applicationApprovedTemplate } from "../../templates";
 
 export const createApplication = async (
   fullName: string,
@@ -275,20 +276,30 @@ export const updateApplicationStatus = async (
     if (newStatus === "APPROVED") {
 
     await queueEmail(
-        application.email,
-        "KYC Application Approved",
-        `Congratulations ${application.fullName}! Your KYC application has been approved successfully.`
-    );
-
+    application.email,
+    "KYC Approved",
+    applicationApprovedTemplate(
+        application.fullName
+    )
+);
 }
 
 if (newStatus === "REJECTED") {
 
+    if (
+    newStatus ===
+    ApplicationStatus.REJECTED
+) {
+
     await queueEmail(
-        application.email,
-        "KYC Application Rejected",
-        `Hello ${application.fullName}, unfortunately your KYC application has been rejected. Please contact support for more information.`
-    );
+    application.email,
+    "KYC Rejected",
+    applicationRejectedTemplate(
+        application.fullName
+    )
+);
+
+}
 
 }
 
@@ -360,9 +371,11 @@ export const assignReviewer = async (
 
     await queueEmail(
     reviewer.email,
-    "New Application Assigned",
-    `Application ${application.fullName} has been assigned to you for review.`
-    );
+    "New KYC Application Assigned",
+    reviewerAssignedTemplate(
+        reviewer.name,
+        application.fullName
+    )
 
     return updatedApplication;
 

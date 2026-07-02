@@ -1,5 +1,6 @@
 import { Worker } from "bullmq";
 import { bullRedisConnection } from "../config/redis";
+import { resend } from "../config/resend";
 
 export const emailWorker =
 new Worker(
@@ -8,24 +9,29 @@ new Worker(
 
     async (job) => {
 
-        console.log(
-            `Sending email to ${job.data.to}`
-        );
+        const {
+            to,
+            subject,
+            html
+        } = job.data;
+
+        const response =
+        await resend.emails.send({
+
+            from:
+                "KYCFlow <onboarding@resend.dev>",
+
+            to,
+
+            subject,
+
+            html,
+
+        });
 
         console.log(
-            job.data.subject
-        );
-
-        await new Promise(
-            resolve =>
-                setTimeout(
-                    resolve,
-                    3000
-                )
-        );
-
-        console.log(
-            `Email sent successfully`
+            "Email sent:",
+            response.data?.id
         );
 
     },

@@ -3,7 +3,7 @@ import { emailQueue } from "../queues/email.queue";
 export const queueEmail = async (
     to: string,
     subject: string,
-    body: string
+    html: string
 ) => {
 
     await emailQueue.add(
@@ -11,7 +11,7 @@ export const queueEmail = async (
         {
             to,
             subject,
-            body,
+            html,
         }
     );
 
