@@ -375,7 +375,38 @@ export const assignReviewer = async (
     reviewerAssignedTemplate(
         reviewer.name,
         application.fullName
-    )
+    );
+
+    await emailQueue.add(
+    "reviewer-reminder",
+
+    {
+        applicationId,
+        reviewerEmail: reviewer.email,
+        reviewerName: reviewer.name,
+        applicantName: application.fullName,
+    },
+
+    {
+        delay: 48 * 60 * 60 * 1000,
+    }
+);
+
+    await emailQueue.add(
+
+    "reviewer-escalation",
+
+    {
+        applicationId,
+        tenantId,
+    },
+
+    {
+        delay:
+            72 * 60 * 60 * 1000,
+    }
+
+);
 
     return updatedApplication;
 
