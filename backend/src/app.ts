@@ -11,6 +11,8 @@ import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
 import helmet from "helmet";
 import morgan from "morgan";
+import { prisma } from "./config/prisma";
+import { redisClient } from "./config/redis";
 
 
 const app = express();
@@ -42,11 +44,31 @@ app.use(
   swaggerUi.serve,
   swaggerUi.setup(swaggerSpec)
 );
-app.get("/health", (_, res) => {
-  res.status(200).json({
-    success: true,
-    message: "KYCFlow API running"
-  });
+
+app.get("/health", async (_, res) => {
+
+    try {
+
+        await prisma.$queryRaw`SELECT 1`;
+
+        await redisClient.ping();
+
+        return res.status(200).json({
+            status: "healthy",
+            postgres: "connected",
+            redis: "connected",
+            timestamp:
+                new Date().toISOString(),
+        });
+
+    } catch {
+
+        return res.status(503).json({
+            status: "unhealthy",
+        });
+
+    }
+
 });
 
 app.use("/api/v1/tenants", tenantRoutes);
