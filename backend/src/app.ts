@@ -10,9 +10,12 @@ import documentRoutes from "./modules/document/document.routes";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
 import helmet from "helmet";
+import morgan from "morgan";
+
 
 const app = express();
 
+app.use(morgan("dev"));
 app.use(helmet({contentSecurityPolicy: false}));
 app.use(
     cors({
