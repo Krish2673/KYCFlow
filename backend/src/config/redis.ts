@@ -1,4 +1,5 @@
 import Redis from "ioredis";
+import { env } from "./env";
 
 export const redisClient = new Redis(
     process.env.REDIS_URL || "redis://localhost:6379"
@@ -6,7 +7,7 @@ export const redisClient = new Redis(
 
 export const bullRedisConnection =
   new Redis(
-    process.env.REDIS_URL!,
+    env.REDIS_URL!,
     {
       maxRetriesPerRequest: null,
     }

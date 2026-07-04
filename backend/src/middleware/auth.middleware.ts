@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { redisClient } from "../config/redis";
 import { AppError } from "../errors/AppError";
+import { env } from "../config/env";
 
 export const authenticate = async (
   req: Request,
@@ -37,7 +38,7 @@ if (blacklisted) {
 
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET!
+      env.JWT_SECRET!
     ) as {
       userId: string;
       tenantId: string;

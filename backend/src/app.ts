@@ -9,17 +9,36 @@ import { errorHandler } from "./middleware/error.middleware";
 import documentRoutes from "./modules/document/document.routes";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
+import helmet from "helmet";
 
 const app = express();
 
-app.use(cors());
+app.use(helmet({contentSecurityPolicy: false}));
+app.use(
+    cors({
+        origin: [
+            process.env.FRONTEND_URL!,
+        ],
+        credentials: true,
+        methods: [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+        ],
+        allowedHeaders: [
+            "Content-Type",
+            "Authorization",
+        ],
+    })
+);
 app.use(express.json());
 app.use(
   "/api-docs",
   swaggerUi.serve,
   swaggerUi.setup(swaggerSpec)
 );
-
 app.get("/health", (_, res) => {
   res.status(200).json({
     success: true,
