@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { loginController, logoutController, refreshTokenController } from "./auth.controller";
+import { loginController, logoutController, refreshTokenController, requestOTPController, verifyOTPController } from "./auth.controller";
 import { loginLimiter } from "../../middleware/rateLimiter.middleware";
 import { authenticate } from "../../middleware/auth.middleware";
 
@@ -44,6 +44,16 @@ router.post(
 router.post(
     "/refresh",
     refreshTokenController
+);
+
+router.post(
+    "/request-otp",
+    requestOTPController
+);
+
+router.post(
+    "/verify-otp",
+    verifyOTPController
 );
 
 export default router;

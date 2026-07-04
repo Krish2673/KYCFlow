@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { loginUser, blacklistToken, refreshAccessToken } from "./auth.service";
+import { loginUser, blacklistToken, refreshAccessToken, requestOTP, verifyOTP } from "./auth.service";
 import { AppError } from "../../errors/AppError";
 import { sendResponse } from "../../utils/sendResponse";
 
@@ -88,3 +88,44 @@ export const refreshTokenController = async (req, res) => {
     );
 
 };
+
+export const requestOTPController =
+asyncHandler(
+async (req, res) => {
+
+    const { email } =
+        req.body;
+
+    await requestOTP(email);
+
+    return sendResponse(
+        res,
+        200,
+        "OTP sent successfully"
+    );
+
+});
+
+export const verifyOTPController =
+asyncHandler(
+async (req, res) => {
+
+    const {
+        email,
+        otp
+    } = req.body;
+
+    const result =
+    await verifyOTP(
+        email,
+        otp
+    );
+
+    return sendResponse(
+        res,
+        200,
+        "OTP verified successfully",
+        result
+    );
+
+});

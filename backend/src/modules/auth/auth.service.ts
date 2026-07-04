@@ -167,3 +167,187 @@ async (
     };
 
 };
+
+export const requestOTP = async (
+    email: string
+) => {
+
+    const user =
+    await prisma.user.findUnique({
+        where: {
+            email
+        }
+    });
+
+    if (!user) {
+        throw new AppError(
+            "User not found",
+            404
+        );
+    }
+
+    const cooldown =
+    await redisClient.get(
+        `otp_cooldown:${email}`
+    );
+
+    if (cooldown) {
+        throw new AppError(
+            "Please wait before requesting another OTP",
+            429
+        );
+    }
+
+    const otp = generateOTP();
+
+    const hashedOTP =
+await bcrypt.hash(
+    otp,
+    10
+);
+
+    await redisClient.set(
+        `otp:${email}`,
+        hashedOTP,
+        "EX",
+        300
+    );
+
+    await redisClient.set(
+        `otp_cooldown:${email}`,
+        "true",
+        "EX",
+        60
+    );
+
+    await queueEmail(
+        email,
+        "Your Login OTP",
+        otpTemplate(otp)
+    );
+
+    return;
+};
+
+export const verifyOTP = async (
+    email: string,
+    otp: string
+) => {
+
+    const storedOtp =
+    await redisClient.get(
+        `otp:${email}`
+    );
+
+    if (!storedOtp) {
+        throw new AppError(
+            "OTP expired",
+            400
+        );
+    }
+
+    const attempts =
+    Number(
+        await redisClient.get(
+            `otp_attempts:${email}`
+        )
+    ) || 0;
+
+    if (attempts >= 3) {
+
+        await redisClient.del(
+            `otp:${email}`
+        );
+
+        throw new AppError(
+            "Maximum OTP attempts exceeded",
+            400
+        );
+    }
+
+    const valid =
+await bcrypt.compare(
+    otp,
+    storedOtp
+);
+
+    if (!valid) {
+
+        await redisClient.incr(
+            `otp_attempts:${email}`
+        );
+
+        await redisClient.expire(
+            `otp_attempts:${email}`,
+            300
+        );
+
+        throw new AppError(
+            "Invalid OTP",
+            400
+        );
+    }
+
+    await redisClient.del(
+        `otp:${email}`
+    );
+
+    await redisClient.del(
+        `otp_attempts:${email}`
+    );
+
+    const user =
+    await prisma.user.findUnique({
+        where: {
+            email
+        }
+    });
+
+    if (!user) {
+        throw new AppError(
+            "User not found",
+            404
+        );
+    }
+
+    const accessToken = jwt.sign(
+        {
+            userId: user.id,
+            tenantId: user.tenantId,
+            role: user.role
+        },
+        env.JWT_SECRET,
+        {
+            expiresIn: "15m"
+        }
+    );
+
+    const refreshToken = jwt.sign(
+        {
+            userId: user.id
+        },
+        env.JWT_REFRESH_SECRET,
+        {
+            expiresIn: "7d"
+        }
+    );
+
+    await redisClient.set(
+        `refresh:${user.id}`,
+        refreshToken,
+        "EX",
+        7 * 24 * 60 * 60
+    );
+
+    return {
+        accessToken,
+        refreshToken,
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            tenantId: user.tenantId
+        }
+    };
+};
