@@ -2,6 +2,12 @@ import prisma from "../../config/prisma";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { redisClient } from "../../config/redis";
+import { AppError } from "../../errors/AppError";
+import { emailQueue } from "../../queues/email.queue";    
+import { queueEmail } from "../../jobs/email.job";
+import { generateOTP } from "../../utils/otp";
+import { otpTemplate } from "../../templates";
+import { env } from "../../config/env";
 
 export const loginUser = async (
   email: string,
@@ -33,7 +39,7 @@ export const loginUser = async (
         tenantId: user.tenantId,
         role: user.role,
     },
-    process.env.JWT_SECRET!,
+    env.JWT_SECRET!,
     {
         expiresIn: "15m",
     }
@@ -43,7 +49,7 @@ const refreshToken = jwt.sign(
     {
         userId: user.id,
     },
-    process.env.JWT_REFRESH_SECRET!,
+    env.JWT_REFRESH_SECRET!,
     {
         expiresIn: "7d",
     }
@@ -109,8 +115,7 @@ async (
 
         refreshToken,
 
-        process.env
-            .JWT_REFRESH_SECRET!
+        env.JWT_REFRESH_SECRET!
 
     ) as {
 
@@ -156,7 +161,7 @@ async (
             tenantId: user.tenantId,
             role: user.role,
         },
-        process.env.JWT_SECRET!,
+        env.JWT_SECRET!,
         {
             expiresIn: "15m"
         }

@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-
 import {
   createApplication,
   getAllApplications,
@@ -11,7 +10,8 @@ import {
   getApplicationMetrics,
   calculateRisk,
   getApplicationAuditLogs,
-  getReviewerMetrics
+  getReviewerMetrics,
+  getMe
 } from "./application.service";
 import { ApplicationStatus } from "@prisma/client";
 import { asyncHandler } from "../../utils/asyncHandler";
@@ -21,7 +21,7 @@ import { MESSAGES } from "../../constants/messages";
 export const createApplicationController =
 asyncHandler(
 
-async (req, res) => {
+async (req : Request, res : Response) => {
 
     const { fullName, email } = req.body;
 
@@ -57,13 +57,13 @@ export const getAllApplicationsController =
         Number(req.query.limit) || 10,
 
     status:
-        req.query.status,
+        req.query.status as ApplicationStatus,
 
     reviewerId:
-        req.query.reviewerId,
+        req.query.reviewerId as string,
 
     search:
-        req.query.search,
+        req.query.search as string,
 
 };
 
@@ -99,7 +99,7 @@ export const getApplicationByIdController =
 
     const application =
       await getApplicationById(
-        req.params.id,
+        req.params.id as string,
         req.user!.tenantId
       );
 
@@ -119,15 +119,15 @@ export const getApplicationByIdController =
 
 export const submitApplicationController =
   async (
-    req,
-    res
+    req : Request,
+    res : Response
   ) => {
 
     try {
 
       const result =
         await submitApplication(
-          req.params.id,
+          req.params.id as string,
           req.user!.tenantId
         );
 
@@ -151,7 +151,7 @@ export const submitApplicationController =
   };
 
 export const updateApplicationStatusController =
-  async (req, res) => {
+  async (req : Request, res : Response) => {
 
     try {
 
@@ -159,7 +159,7 @@ export const updateApplicationStatusController =
 
       const application =
         await updateApplicationStatus(
-          req.params.id,
+          req.params.id as string,
           req.user!.tenantId,
           req.user!.userId,
           newStatus
@@ -192,7 +192,7 @@ export const assignReviewerController = async (
     const { reviewerId } = req.body;
 
     const application = await assignReviewer(
-      req.params.id,
+      req.params.id as string,
       reviewerId,
       req.user!.tenantId
     );
@@ -215,7 +215,7 @@ export const assignReviewerController = async (
 export const getMyApplicationsController =
 asyncHandler(
 
-async (req, res) => {
+async (req : Request, res : Response) => {
   const filters = {
 
     page:
@@ -262,7 +262,7 @@ return sendResponse(
 export const getApplicationMetricsController =
 asyncHandler(
 
-async (req, res) => {
+async (req : Request, res : Response) => {
 
     const metrics =
     await getApplicationMetrics(
@@ -281,7 +281,7 @@ async (req, res) => {
 export const getReviewerMetricsController =
 asyncHandler(
 
-async (req, res) => {
+async (req : Request, res : Response) => {
 
     const metrics =
         await getReviewerMetrics(
@@ -301,12 +301,12 @@ async (req, res) => {
 export const getRiskAssessmentController =
 asyncHandler(
 
-async (req, res) => {
+async (req : Request, res : Response) => {
 
     const result =
     await calculateRisk(
 
-        req.params.id,
+        req.params.id as string,
 
         req.user!.tenantId
 
@@ -327,11 +327,11 @@ async (req, res) => {
 });
 
 export const getApplicationAuditLogsController =
-asyncHandler(async (req, res) => {
+asyncHandler(async (req : Request, res : Response) => {
 
     const logs =
     await getApplicationAuditLogs(
-        req.params.id,
+        req.params.id as string,
         req.user!.tenantId
     );
 
@@ -345,11 +345,11 @@ asyncHandler(async (req, res) => {
 });
 
 export const getMeController =
-asyncHandler(async (req, res) => {
+asyncHandler(async (req : Request, res : Response) => {
 
     const user =
     await getMe(
-        req.user!.userId
+        req.user!.userId as string
     );
 
     return sendResponse(

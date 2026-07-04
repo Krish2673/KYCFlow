@@ -4,6 +4,6 @@ import { bullRedisConnection } from "./redis";
 export const emailQueue = new Queue(
     "emailQueue",
     {
-        connection: bullRedisConnection,
+        connection: bullRedisConnection as any,
     }
 );

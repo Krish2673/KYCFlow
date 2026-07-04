@@ -4,7 +4,7 @@ import { bullRedisConnection } from "../config/redis";
 export const emailQueue = new Queue(
     "emailQueue",
     {
-        connection: bullRedisConnection,
+        connection: bullRedisConnection as any,
         defaultJobOptions: {
             attempts: 3,
             backoff: {

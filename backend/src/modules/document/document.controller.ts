@@ -2,11 +2,13 @@ import { supabase } from "../../config/supabase";
 import { createDocument, getDocumentsByApplication, verifyDocument, getDocumentById } from "./document.service";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { sendResponse } from "../../utils/sendResponse";
+import { AppError } from "../../errors/AppError";
+import { Request, Response } from "express";
 
 export const uploadDocumentController =
-asyncHandler(async (req, res) => {
+asyncHandler(async (req : Request, res : Response) => {
   if (!req.file) {
-    throw new Error("No file uploaded");
+    throw new AppError("No file uploaded", 400);
   }
 
   const fileName =
@@ -24,12 +26,12 @@ await supabase.storage
 );
 
   if (error) {
-    throw error;
+    throw new AppError("Failed to upload document", 500);
   }
 
   const document =
 await createDocument(
-    req.params.id,
+    req.params.id as string,
     req.body.type,
     fileName
 );
@@ -45,11 +47,11 @@ await createDocument(
 export const getDocumentsController =
 asyncHandler(
 
-async (req, res) => {
+async (req : Request, res : Response) => {
 
     const documents =
     await getDocumentsByApplication(
-        req.params.applicationId
+        req.params.applicationId as string
     );
 
     return sendResponse(
@@ -64,11 +66,11 @@ async (req, res) => {
 export const verifyDocumentController =
 asyncHandler(
 
-async (req, res) => {
+async (req : Request, res : Response) => {
 
     const existingDocument =
 await getDocumentById(
-    req.params.documentId
+    req.params.documentId as string
 );
 
 if (!existingDocument) {
@@ -95,7 +97,7 @@ if (!existingDocument) {
 
     const document =
     await verifyDocument(
-        req.params.documentId
+        req.params.documentId as string
     );
 
     return sendResponse(
@@ -110,11 +112,11 @@ if (!existingDocument) {
 export const viewDocumentController =
 asyncHandler(
 
-async (req, res) => {
+async (req : Request, res : Response) => {
 
     const document =
     await getDocumentById(
-        req.params.documentId
+        req.params.documentId as string
     );
 
     if (!document) {
@@ -138,7 +140,7 @@ await supabase.storage
 );
 
     if (error) {
-        throw error;
+        throw new AppError("Failed to generate document URL", 500);
     }
 
     return sendResponse(

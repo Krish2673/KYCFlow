@@ -28,25 +28,29 @@ export const authenticate = async (
 );
 
 if (blacklisted) {
-
     throw new AppError(
         "Token has been invalidated",
         401
     );
+}
 
+  if (!token) {
+    throw new AppError(
+        "Token missing",
+        401
+    );
 }
 
     const decoded = jwt.verify(
       token,
       env.JWT_SECRET!
-    ) as {
+    ) as jwt.JwtPayload & {
       userId: string;
       tenantId: string;
       role: string;
     };
 
     req.user = decoded;
-
     next();
 
   } catch (error) {

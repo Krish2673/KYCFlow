@@ -44,7 +44,7 @@ export const getUserByIdController = async (
   req: Request,
   res: Response
 ) => {
-  const user = await getUserById(req.params.id);
+  const user = await getUserById(req.params.id as string);
 
   if (!user) {
     return res.status(404).json({

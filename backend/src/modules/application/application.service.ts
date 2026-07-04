@@ -6,6 +6,7 @@ import { AppError } from "../../errors/AppError";
 import { ApplicationFilters } from "./application.types";
 import { redisClient } from "../../config/redis";
 import { queueEmail } from "../../jobs/email.job";
+import { emailQueue } from "../../queues/email.queue";
 import { reviewerAssignedTemplate, applicationRejectedTemplate, applicationApprovedTemplate } from "../../templates";
 
 export const createApplication = async (
@@ -375,7 +376,7 @@ export const assignReviewer = async (
     reviewerAssignedTemplate(
         reviewer.name,
         application.fullName
-    );
+    ));
 
     await emailQueue.add(
     "reviewer-reminder",
@@ -901,7 +902,7 @@ export const getApplicationAuditLogs = async (
         },
 
         include: {
-            performedBy: {
+            user: {
                 select: {
                     id: true,
                     name: true,

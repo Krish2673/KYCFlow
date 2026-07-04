@@ -44,7 +44,7 @@ export const getTenantByIdController = async (
   req: Request,
   res: Response
 ) => {
-  const { id } = req.params;
+  const { id } = req.params as { id: string };
 
   const tenant = await getTenantById(id);
 

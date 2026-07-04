@@ -9,7 +9,7 @@ export const verifyAssignedReviewer = async (
 
     const application = await prisma.application.findUnique({
         where: {
-            id: req.params.id
+            id: req.params.id as string
         }
     });
 

@@ -1,4 +1,5 @@
 import prisma from "../../config/prisma";
+import { ApplicationStatus } from "@prisma/client";
 
 export const createAuditLog =
   async (

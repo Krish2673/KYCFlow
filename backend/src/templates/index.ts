@@ -4,3 +4,4 @@ export * from "./applicationRejected.template";
 export * from "./reviewerReminder.template";
 export * from "./escalation.template";
 export * from "./dailySummary.template";
+export * from "./otp.template";

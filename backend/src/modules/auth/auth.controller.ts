@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { loginUser, blacklistToken, refreshAccessToken, requestOTP, verifyOTP } from "./auth.service";
 import { AppError } from "../../errors/AppError";
 import { sendResponse } from "../../utils/sendResponse";
+import jwt from "jsonwebtoken";
+import { redisClient } from "../../config/redis";
 
 export const loginController = async (
   req: Request,
@@ -31,7 +33,7 @@ export const loginController = async (
   }
 };
 
-export const logoutController = async (req, res) => {
+export const logoutController = async (req : Request, res : Response) => {
 
     const authHeader =
     req.headers.authorization;
@@ -43,14 +45,20 @@ if (!authHeader?.startsWith("Bearer ")) {
     );
 }
 
-const token =
-    authHeader.split(" ")[1];
+const token = authHeader.split(" ")[1];
+
+if (!token) {
+    throw new AppError(
+        "Token missing",
+        401
+    );
+}
 
 const decoded =
 jwt.verify(
     token,
     process.env.JWT_SECRET!
-) as {
+) as jwt.JwtPayload & {
     userId: string
 };
 
@@ -59,7 +67,7 @@ await redisClient.del(
 );
 
   await blacklistToken(
-    token
+    token as string
 );
 
     return sendResponse(
@@ -70,7 +78,7 @@ await redisClient.del(
 
 };
 
-export const refreshTokenController = async (req, res) => {
+export const refreshTokenController = async (req : Request, res : Response) => {
 
     const { refreshToken } =
         req.body;
@@ -89,9 +97,7 @@ export const refreshTokenController = async (req, res) => {
 
 };
 
-export const requestOTPController =
-asyncHandler(
-async (req, res) => {
+export const requestOTPController = async (req : Request, res : Response) => {
 
     const { email } =
         req.body;
@@ -104,11 +110,9 @@ async (req, res) => {
         "OTP sent successfully"
     );
 
-});
+};
 
-export const verifyOTPController =
-asyncHandler(
-async (req, res) => {
+export const verifyOTPController = async (req : Request, res : Response) => {
 
     const {
         email,
@@ -128,4 +132,4 @@ async (req, res) => {
         result
     );
 
-});
+};
