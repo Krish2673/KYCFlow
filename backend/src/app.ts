@@ -11,7 +11,7 @@ import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
 import helmet from "helmet";
 import morgan from "morgan";
-import { prisma } from "./config/prisma";
+import prisma from "./config/prisma";
 import { redisClient } from "./config/redis";
 
 

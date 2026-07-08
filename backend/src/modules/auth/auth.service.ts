@@ -7,7 +7,6 @@ import { emailQueue } from "../../queues/email.queue";
 import { queueEmail } from "../../jobs/email.job";
 import { generateOTP } from "../../utils/otp";
 import { otpTemplate } from "../../templates";
-import { env } from "../../config/env";
 
 export const loginUser = async (
   email: string,
@@ -39,7 +38,7 @@ export const loginUser = async (
         tenantId: user.tenantId,
         role: user.role,
     },
-    env.JWT_SECRET!,
+    process.env.JWT_SECRET!,
     {
         expiresIn: "15m",
     }
@@ -49,7 +48,7 @@ const refreshToken = jwt.sign(
     {
         userId: user.id,
     },
-    env.JWT_REFRESH_SECRET!,
+    process.env.JWT_REFRESH_SECRET!,
     {
         expiresIn: "7d",
     }
@@ -115,7 +114,7 @@ async (
 
         refreshToken,
 
-        env.JWT_REFRESH_SECRET!
+        process.env.JWT_REFRESH_SECRET!
 
     ) as {
 
@@ -161,7 +160,7 @@ async (
             tenantId: user.tenantId,
             role: user.role,
         },
-        env.JWT_SECRET!,
+        process.env.JWT_SECRET!,
         {
             expiresIn: "15m"
         }
@@ -321,7 +320,7 @@ await bcrypt.compare(
             tenantId: user.tenantId,
             role: user.role
         },
-        env.JWT_SECRET,
+        process.env.JWT_SECRET!,
         {
             expiresIn: "15m"
         }
@@ -331,7 +330,7 @@ await bcrypt.compare(
         {
             userId: user.id
         },
-        env.JWT_REFRESH_SECRET,
+        process.env.JWT_REFRESH_SECRET!,
         {
             expiresIn: "7d"
         }
