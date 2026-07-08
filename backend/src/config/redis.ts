@@ -1,15 +1,13 @@
 import Redis from "ioredis";
-import { env } from "./env";
 
-export const redisClient = new Redis(
-    process.env.REDIS_URL || "redis://localhost:6379"
-);
+export const redisClient = new Redis(process.env.REDIS_URL!);
 
 export const bullRedisConnection =
   new Redis(
-    env.REDIS_URL!,
+    process.env.REDIS_URL!,
     {
       maxRetriesPerRequest: null,
+      tls : {},
     }
   );
 
