@@ -61,10 +61,11 @@ app.get("/health", async (_, res) => {
                 new Date().toISOString(),
         });
 
-    } catch {
-
+    } catch(error:any) {
+        console.log(error);
         return res.status(503).json({
             status: "unhealthy",
+            message: error.message
         });
 
     }
