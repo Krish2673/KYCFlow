@@ -3,6 +3,7 @@ import type { ApplicationStatus, DocumentType, UserRole } from '../types';
 export const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
 export const TOKEN_KEY = 'kycflow_token';
+export const REFRESH_TOKEN_KEY = 'kycflow_refresh_token';
 export const USER_KEY = 'kycflow_user';
 
 export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {

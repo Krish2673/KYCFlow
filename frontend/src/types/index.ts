@@ -101,8 +101,28 @@ export interface ApiResponse<T> {
 }
 
 export interface LoginResponse {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   user: AuthUser;
+}
+
+export interface ReviewerMetrics {
+  assigned: number;
+  documentVerification: number;
+  manualReview: number;
+  approved: number;
+  rejected: number;
+}
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  tenant: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface ApplicationsQuery {

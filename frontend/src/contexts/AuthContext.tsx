@@ -1,5 +1,11 @@
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
-import { getStoredToken, getStoredUser, login as apiLogin, logout as apiLogout } from '../api/auth';
+import {
+  getStoredToken,
+  getStoredUser,
+  login as apiLogin,
+  logout as apiLogout,
+  verifyOtp as apiVerifyOtp,
+} from '../api/auth';
 import type { AuthUser, UserRole } from '../types';
 
 interface AuthContextValue {
@@ -7,7 +13,8 @@ interface AuthContextValue {
   token: string | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  loginWithOtp: (email: string, otp: string) => Promise<void>;
+  logout: () => Promise<void>;
   hasRole: (...roles: UserRole[]) => boolean;
 }
 
@@ -25,10 +32,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login: async (email, password) => {
         const result = await apiLogin(email, password);
         setUser(result.user);
-        setToken(result.token);
+        setToken(result.accessToken);
       },
-      logout: () => {
-        apiLogout();
+      loginWithOtp: async (email, otp) => {
+        const result = await apiVerifyOtp(email, otp);
+        setUser(result.user);
+        setToken(result.accessToken);
+      },
+      logout: async () => {
+        await apiLogout();
         setUser(null);
         setToken(null);
       },

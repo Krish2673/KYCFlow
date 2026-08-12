@@ -1,4 +1,5 @@
 import { LogOut } from 'lucide-react';
+import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '../ui/Button';
 
@@ -10,6 +11,16 @@ interface HeaderProps {
 
 export function Header({ title, description, action }: HeaderProps) {
   const { logout } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleLogout = async () => {
+    setSigningOut(true);
+    try {
+      await logout();
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   return (
     <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -19,7 +30,7 @@ export function Header({ title, description, action }: HeaderProps) {
       </div>
       <div className="flex items-center gap-3">
         {action}
-        <Button variant="secondary" size="sm" onClick={logout}>
+        <Button variant="secondary" size="sm" loading={signingOut} onClick={handleLogout}>
           <LogOut className="h-4 w-4" />
           Sign out
         </Button>

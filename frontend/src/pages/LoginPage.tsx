@@ -1,14 +1,21 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Shield } from 'lucide-react';
+import { requestOtp } from '../api/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { cn } from '../lib/utils';
+
+type LoginMode = 'password' | 'otp';
 
 export function LoginPage() {
-  const { login, isAuthenticated } = useAuth();
+  const { login, loginWithOtp, isAuthenticated } = useAuth();
+  const [mode, setMode] = useState<LoginMode>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +23,18 @@ export function LoginPage() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const resetOtpFlow = () => {
+    setOtp('');
+    setOtpSent(false);
+    setError('');
+  };
+
+  const switchMode = (next: LoginMode) => {
+    setMode(next);
+    resetOtpFlow();
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -24,6 +42,33 @@ export function LoginPage() {
       await login(email, password);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRequestOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await requestOtp(email);
+      setOtpSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await loginWithOtp(email, otp);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'OTP verification failed');
     } finally {
       setLoading(false);
     }
@@ -50,6 +95,11 @@ export function LoginPage() {
             Manage applications, verify documents, assess risk, and track every step of the
             customer onboarding journey.
           </p>
+          <ul className="space-y-2 text-sm text-brand-100">
+            <li>• Multi-tenant organization management</li>
+            <li>• Document upload & verification workflow</li>
+            <li>• Automated risk scoring & manual review</li>
+          </ul>
         </div>
         <p className="relative text-sm text-brand-200">
           Secure · Compliant · Multi-tenant
@@ -72,40 +122,117 @@ export function LoginPage() {
             Sign in to your account to continue
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-            <Input
-              id="email"
-              label="Email address"
-              type="email"
-              placeholder="you@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
-            <Input
-              id="password"
-              label="Password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-            />
+          <div className="mt-6 flex rounded-lg border border-slate-200 bg-slate-50 p-1">
+            {(['password', 'otp'] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => switchMode(tab)}
+                className={cn(
+                  'flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  mode === tab
+                    ? 'bg-white text-brand-700 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700',
+                )}
+              >
+                {tab === 'password' ? 'Password' : 'Email OTP'}
+              </button>
+            ))}
+          </div>
 
-            {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
-              </div>
-            )}
+          {mode === 'password' ? (
+            <form onSubmit={handlePasswordSubmit} className="mt-6 space-y-5">
+              <Input
+                id="email"
+                label="Email address"
+                type="email"
+                placeholder="you@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+              <Input
+                id="password"
+                label="Password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
 
-            <Button type="submit" className="w-full" size="lg" loading={loading}>
-              Sign in
-            </Button>
-          </form>
+              {error && <AuthError message={error} />}
+
+              <Button type="submit" className="w-full" size="lg" loading={loading}>
+                Sign in
+              </Button>
+            </form>
+          ) : (
+            <form
+              onSubmit={otpSent ? handleVerifyOtp : handleRequestOtp}
+              className="mt-6 space-y-5"
+            >
+              <Input
+                id="otpEmail"
+                label="Email address"
+                type="email"
+                placeholder="you@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                disabled={otpSent}
+              />
+
+              {otpSent && (
+                <Input
+                  id="otp"
+                  label="One-time password"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  placeholder="000000"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  required
+                  autoComplete="one-time-code"
+                />
+              )}
+
+              {error && <AuthError message={error} />}
+
+              <Button type="submit" className="w-full" size="lg" loading={loading}>
+                {otpSent ? 'Verify & Sign in' : 'Send OTP'}
+              </Button>
+
+              {otpSent && (
+                <button
+                  type="button"
+                  className="w-full text-sm text-brand-600 hover:text-brand-700"
+                  onClick={resetOtpFlow}
+                >
+                  Use a different email
+                </button>
+              )}
+            </form>
+          )}
+
+          <p className="mt-8 text-center text-xs text-slate-400">
+            Demo: admin@zerodha.com / password123
+          </p>
         </div>
       </div>
+    </div>
+  );
+}
+
+function AuthError({ message }: { message: string }) {
+  return (
+    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      {message}
     </div>
   );
 }

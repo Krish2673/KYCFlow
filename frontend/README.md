@@ -1,32 +1,72 @@
-# React + TypeScript + Vite
+# KYCFlow Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + TypeScript + Vite frontend for the KYCFlow KYC management platform.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Authentication** — Password login, email OTP, automatic token refresh, server-side logout
+- **Tenant Admin** — Dashboard, application CRUD, document upload, reviewer assignment, user/tenant management
+- **Reviewer** — Inbox, document verification, workflow transitions, risk assessment view
+- **Workflow** — Full KYC pipeline: Draft → Submitted → Document Verification → Risk Assessment → Manual Review → Approved/Rejected
 
-## React Compiler
+## Quick Start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+# From repo root — start Postgres & Redis
+docker compose up -d postgres redis
 
-## Expanding the Oxlint configuration
+# Backend (port 5000)
+cd backend
+npm install
+npx prisma migrate deploy
+npx prisma db seed   # optional demo data
+npm run dev
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+# Frontend (port 5173) — separate terminal
+cd frontend
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Open http://localhost:5173
+
+### Demo credentials (after seed)
+
+| Role         | Email                  | Password     |
+|--------------|------------------------|--------------|
+| Tenant Admin | admin@zerodha.com      | password123  |
+| Reviewer     | reviewer@zerodha.com   | password123  |
+
+## Environment
+
+Create `frontend/.env` (optional):
+
+```env
+VITE_API_URL=
+```
+
+Leave empty in development — Vite proxies `/api`, `/me`, and `/health` to the backend.
+
+For production, set `VITE_API_URL` to your backend URL (e.g. `https://api.example.com`).
+
+## Scripts
+
+| Command        | Description              |
+|----------------|--------------------------|
+| `npm run dev`  | Start dev server         |
+| `npm run build`| Production build         |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run Oxlint               |
+
+## Project Structure
+
+```
+src/
+├── api/           # API client & endpoints
+├── components/    # UI, layout, feature components
+├── contexts/      # Auth context
+├── hooks/         # Custom hooks
+├── pages/         # Route pages
+├── lib/           # Constants & utilities
+└── types/         # TypeScript types
+```

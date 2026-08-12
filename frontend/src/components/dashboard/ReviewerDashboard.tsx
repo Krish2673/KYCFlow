@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   ArrowRight,
+  CheckCircle2,
   ClipboardCheck,
   FileSearch,
   Inbox,
 } from 'lucide-react';
+import { getReviewerMetrics } from '../../api/applications';
 import { ApplicationStatusBadge } from '../applications/ApplicationStatusBadge';
 import { Header } from '../layout/Header';
 import { Button } from '../ui/Button';
@@ -15,35 +18,44 @@ import { useReviewerPendingWork } from '../../hooks/useReviewerPendingWork';
 import { formatRelativeDate } from '../../lib/utils';
 
 export function ReviewerDashboard() {
+  const { data: metrics, isLoading: metricsLoading } = useQuery({
+    queryKey: ['reviewer-metrics'],
+    queryFn: getReviewerMetrics,
+  });
+
   const {
-    isLoading,
+    isLoading: workLoading,
     myApplications,
-    pendingVerifications,
-    documentsAwaitingReview,
     pendingDocuments,
     getDocumentLabel,
   } = useReviewerPendingWork();
 
-  if (isLoading) return <PageLoader />;
+  if (metricsLoading || workLoading) return <PageLoader />;
 
   const statCards = [
     {
-      label: 'My Applications',
-      value: myApplications.length,
+      label: 'Assigned',
+      value: metrics?.assigned ?? 0,
       icon: Inbox,
       color: 'bg-brand-50 text-brand-600',
     },
     {
-      label: 'Pending Verifications',
-      value: pendingVerifications,
+      label: 'Doc Verification',
+      value: metrics?.documentVerification ?? 0,
       icon: ClipboardCheck,
       color: 'bg-amber-50 text-amber-600',
     },
     {
-      label: 'Documents Awaiting Review',
-      value: documentsAwaitingReview,
+      label: 'Manual Review',
+      value: metrics?.manualReview ?? 0,
       icon: FileSearch,
       color: 'bg-purple-50 text-purple-600',
+    },
+    {
+      label: 'Approved',
+      value: metrics?.approved ?? 0,
+      icon: CheckCircle2,
+      color: 'bg-emerald-50 text-emerald-600',
     },
   ];
 
@@ -62,7 +74,7 @@ export function ReviewerDashboard() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {statCards.map(({ label, value, icon: Icon, color }) => (
           <Card key={label} className="!p-5">
             <div className="flex items-center gap-4">

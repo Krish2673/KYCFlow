@@ -5,8 +5,10 @@ import type {
   ApplicationsQuery,
   AssignReviewerInput,
   CreateApplicationInput,
+  ReviewerMetrics,
   RiskAssessment,
   UpdateStatusInput,
+  UserProfile,
 } from '../types';
 
 function buildQuery(params: ApplicationsQuery) {
@@ -69,4 +71,12 @@ export function assignReviewer(id: string, data: AssignReviewerInput) {
     method: 'PATCH',
     body: JSON.stringify(data),
   });
+}
+
+export function getReviewerMetrics() {
+  return apiRequest<ReviewerMetrics>('/api/v1/applications/my/metrics');
+}
+
+export function getProfile() {
+  return apiRequest<UserProfile>('/api/v1/applications/me');
 }

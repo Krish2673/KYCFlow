@@ -1,4 +1,9 @@
-import { API_BASE, TOKEN_KEY } from '../lib/constants';
+import {
+  clearSession,
+  getStoredToken,
+  refreshAccessToken,
+} from './auth';
+import { API_BASE } from '../lib/constants';
 import type { ApiResponse } from '../types';
 
 export class ApiError extends Error {
@@ -13,30 +18,14 @@ export class ApiError extends Error {
   }
 }
 
-function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+function redirectToLogin() {
+  clearSession();
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
 }
 
-export async function apiRequest<T>(
-  path: string,
-  options: RequestInit = {},
-): Promise<T> {
-  const token = getToken();
-  const headers = new Headers(options.headers);
-
-  if (!(options.body instanceof FormData)) {
-    headers.set('Content-Type', 'application/json');
-  }
-
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
-  }
-
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
-
+async function parseResponse<T>(response: Response): Promise<T> {
   const body = (await response.json()) as ApiResponse<T> & { user?: T };
 
   if (!response.ok || body.success === false) {
@@ -52,11 +41,12 @@ export async function apiRequest<T>(
   return body as unknown as T;
 }
 
-export async function apiRequestWithMeta<T>(
+async function fetchWithAuth(
   path: string,
   options: RequestInit = {},
-): Promise<{ data: T; meta?: ApiResponse<T>['meta'] }> {
-  const token = getToken();
+  retried = false,
+): Promise<Response> {
+  const token = getStoredToken();
   const headers = new Headers(options.headers);
 
   if (!(options.body instanceof FormData)) {
@@ -72,6 +62,31 @@ export async function apiRequestWithMeta<T>(
     headers,
   });
 
+  if (response.status === 401 && !retried && path !== '/api/v1/auth/refresh') {
+    const newToken = await refreshAccessToken();
+    if (newToken) {
+      return fetchWithAuth(path, options, true);
+    }
+    redirectToLogin();
+    throw new ApiError('Session expired. Please sign in again.', 401);
+  }
+
+  return response;
+}
+
+export async function apiRequest<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const response = await fetchWithAuth(path, options);
+  return parseResponse<T>(response);
+}
+
+export async function apiRequestWithMeta<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<{ data: T; meta?: ApiResponse<T>['meta'] }> {
+  const response = await fetchWithAuth(path, options);
   const body = (await response.json()) as ApiResponse<T>;
 
   if (!response.ok || body.success === false) {
