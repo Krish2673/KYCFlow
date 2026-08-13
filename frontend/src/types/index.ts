@@ -1,4 +1,6 @@
-export type UserRole = 'SUPER_ADMIN' | 'TENANT_ADMIN' | 'REVIEWER';
+export type UserRole = 'SUPER_ADMIN' | 'TENANT_ADMIN' | 'REVIEWER' | 'APPLICANT';
+
+export type UserStatus = 'PENDING' | 'ACTIVE' | 'REJECTED' | 'SUSPENDED';
 
 export type ApplicationStatus =
   | 'DRAFT'
@@ -22,8 +24,15 @@ export type RiskDecision = 'APPROVED' | 'MANUAL_REVIEW' | 'REJECT';
 export interface Tenant {
   id: string;
   name: string;
+  slug?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PublicTenant {
+  id: string;
+  name: string;
+  slug: string;
 }
 
 export interface User {
@@ -31,6 +40,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  status?: UserStatus;
   tenantId: string;
   createdAt: string;
   updatedAt?: string;
@@ -52,6 +62,7 @@ export interface Application {
   status: ApplicationStatus;
   tenantId: string;
   reviewerId: string | null;
+  applicantUserId?: string | null;
   createdById: string;
   createdAt: string;
   updatedAt: string;
@@ -152,6 +163,33 @@ export interface CreateTenantInput {
 
 export interface AssignReviewerInput {
   reviewerId: string;
+}
+
+export interface InviteUserInput {
+  name: string;
+  email: string;
+  role: 'REVIEWER' | 'TENANT_ADMIN';
+}
+
+export interface RegisterApplicantInput {
+  name: string;
+  email: string;
+  password: string;
+  tenantId: string;
+}
+
+export interface RegisterOrganizationInput {
+  orgName: string;
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface InvitationDetails {
+  email: string;
+  role: UserRole;
+  organization: string;
+  expiresAt: string;
 }
 
 export interface UpdateStatusInput {

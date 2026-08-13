@@ -1,26 +1,21 @@
-// src/modules/tenant/tenant.routes.ts
-
 import { Router } from "express";
 import { authenticate } from "../../middleware/auth.middleware";
 import { authorize } from "../../middleware/role.middleware";
 import { validate } from "../../middleware/validate.middleware";
 import { createTenantSchema } from "../../validators/tenant.validator";
-
 import {
   createTenantController,
   getAllTenantsController,
   getTenantByIdController,
+  getPublicTenantsController,
 } from "./tenant.controller";
 
 const router = Router();
 
-router.post("/", authenticate, authorize("TENANT_ADMIN"), validate(createTenantSchema), createTenantController);
-// router.post("/", createTenantController);
+router.get("/public", getPublicTenantsController);
 
-router.get("/", authenticate, authorize("TENANT_ADMIN"), getAllTenantsController);
-// router.get("/", getAllTenantsController);
-
-router.get("/:id", authenticate, authorize("TENANT_ADMIN"), getTenantByIdController);
-// router.get("/:id", getTenantByIdController);
+router.post("/", authenticate, authorize("SUPER_ADMIN"), validate(createTenantSchema), createTenantController);
+router.get("/", authenticate, authorize("SUPER_ADMIN"), getAllTenantsController);
+router.get("/:id", authenticate, authorize("SUPER_ADMIN", "TENANT_ADMIN"), getTenantByIdController);
 
 export default router;

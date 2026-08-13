@@ -2,35 +2,32 @@ import rateLimit from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 import { redisClient } from "../config/redis";
 
-export const loginLimiter =
-rateLimit({
+const baseOptions = {
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many login attempts. Try again in 15 minutes.",
+  },
+};
 
-    windowMs:
-        15 * 60 * 1000,
+function createLoginLimiter() {
+  if (process.env.REDIS_URL) {
+    return rateLimit({
+      ...baseOptions,
+      store: new RedisStore({
+        sendCommand: (...args: string[]) =>
+          redisClient.call(args[0]!, ...args.slice(1)) as Promise<number | string>,
+      }),
+    });
+  }
 
-    max:
-        10,
+  console.warn(
+    "REDIS_URL not configured — login rate limiting uses in-memory store.",
+  );
+  return rateLimit(baseOptions);
+}
 
-    standardHeaders: true,
-
-    legacyHeaders: false,
-
-    message: {
-        success: false,
-        message:
-            "Too many login attempts. Try again in 15 minutes."
-    },
-
-    store:
-        new RedisStore({
-
-            sendCommand:
-                (...args: string[]) =>
-                    redisClient.call(
-                        args[0]!,
-                        ...args.slice(1)
-                    ) as any,
-
-        }),
-
-});
+export const loginLimiter = createLoginLimiter();

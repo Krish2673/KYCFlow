@@ -4,6 +4,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { AcceptInvitePage } from './pages/AcceptInvitePage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ApplicationsPage } from './pages/ApplicationsPage';
 import { CreateApplicationPage } from './pages/CreateApplicationPage';
@@ -29,6 +31,8 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/invite/:token" element={<AcceptInvitePage />} />
 
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
@@ -39,6 +43,9 @@ export default function App() {
                   <Route path="/applications" element={<ApplicationsPage />} />
                   <Route path="/applications/new" element={<CreateApplicationPage />} />
                   <Route path="/users" element={<UsersPage />} />
+                </Route>
+
+                <Route element={<ProtectedRoute roles={['SUPER_ADMIN']} />}>
                   <Route path="/tenants" element={<TenantsPage />} />
                 </Route>
 
@@ -46,8 +53,10 @@ export default function App() {
                   <Route path="/inbox" element={<ReviewerInboxPage />} />
                 </Route>
 
-                <Route path="/applications/:id/risk" element={<RiskAssessmentPage />} />
-                <Route path="/applications/:id" element={<ApplicationDetailPage />} />
+                <Route element={<ProtectedRoute roles={['APPLICANT', 'TENANT_ADMIN', 'REVIEWER', 'SUPER_ADMIN']} />}>
+                  <Route path="/applications/:id/risk" element={<RiskAssessmentPage />} />
+                  <Route path="/applications/:id" element={<ApplicationDetailPage />} />
+                </Route>
               </Route>
             </Route>
 

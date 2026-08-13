@@ -1,5 +1,6 @@
 import { supabase } from "../../config/supabase";
 import { createDocument, getDocumentsByApplication, verifyDocument, getDocumentById } from "./document.service";
+import { assertApplicationAccess } from "../application/application.service";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { sendResponse } from "../../utils/sendResponse";
 import { AppError } from "../../errors/AppError";
@@ -10,6 +11,13 @@ asyncHandler(async (req : Request, res : Response) => {
   if (!req.file) {
     throw new AppError("No file uploaded", 400);
   }
+
+  await assertApplicationAccess(
+    req.params.id as string,
+    req.user!.tenantId,
+    req.user!.userId,
+    req.user!.role,
+  );
 
   const fileName =
     `${Date.now()}-${req.file.originalname}`;

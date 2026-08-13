@@ -1,3 +1,4 @@
+import "../config/env";
 import { Worker } from "bullmq";
 
 import prisma from "../config/prisma";

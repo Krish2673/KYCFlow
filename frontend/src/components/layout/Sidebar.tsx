@@ -14,11 +14,11 @@ import { useAuth } from '../../contexts/AuthContext';
 import { cn } from '../../lib/utils';
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['TENANT_ADMIN', 'REVIEWER', 'SUPER_ADMIN'] as const },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['TENANT_ADMIN', 'REVIEWER', 'SUPER_ADMIN', 'APPLICANT'] as const },
   { to: '/applications', label: 'Applications', icon: ClipboardList, roles: ['TENANT_ADMIN', 'SUPER_ADMIN'] as const },
   { to: '/inbox', label: 'My Inbox', icon: Inbox, roles: ['REVIEWER', 'TENANT_ADMIN', 'SUPER_ADMIN'] as const },
   { to: '/users', label: 'Users', icon: Users, roles: ['TENANT_ADMIN', 'SUPER_ADMIN'] as const },
-  { to: '/tenants', label: 'Tenants', icon: Building2, roles: ['TENANT_ADMIN', 'SUPER_ADMIN'] as const },
+  { to: '/tenants', label: 'Tenants', icon: Building2, roles: ['SUPER_ADMIN'] as const },
 ];
 
 interface SidebarProps {

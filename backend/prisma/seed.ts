@@ -5,6 +5,7 @@ async function main() {
   const tenant = await prisma.tenant.create({
     data: {
       name: "Zerodha",
+      slug: "zerodha",
     },
   });
 
@@ -16,6 +17,7 @@ async function main() {
       email: "admin@zerodha.com",
       password,
       role: "TENANT_ADMIN",
+      status: "ACTIVE",
       tenantId: tenant.id,
     },
   });
@@ -26,6 +28,7 @@ async function main() {
       email: "reviewer@zerodha.com",
       password,
       role: "REVIEWER",
+      status: "ACTIVE",
       tenantId: tenant.id,
     },
   });

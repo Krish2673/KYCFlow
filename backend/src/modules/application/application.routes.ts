@@ -12,7 +12,8 @@ import {
   getRiskAssessmentController,
   getApplicationAuditLogsController,
   getMeController,
-  getReviewerMetricsController
+  getReviewerMetricsController,
+  getApplicantApplicationController,
 } from "./application.controller";
 
 import {
@@ -43,6 +44,13 @@ router.get(
   "/",
   authenticate,
   getAllApplicationsController
+);
+
+router.get(
+  "/my-application",
+  authenticate,
+  authorize("APPLICANT"),
+  getApplicantApplicationController,
 );
 
 router.get(
@@ -98,7 +106,7 @@ router.get(
 router.patch(
   "/:id/submit",
   authenticate,
-  authorize("TENANT_ADMIN"),
+  authorize("TENANT_ADMIN", "APPLICANT"),
   submitApplicationController
 );
 

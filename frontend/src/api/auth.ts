@@ -4,7 +4,7 @@ import {
   TOKEN_KEY,
   USER_KEY,
 } from '../lib/constants';
-import type { AuthUser, LoginResponse } from '../types';
+import type { AuthUser, InvitationDetails, LoginResponse, RegisterApplicantInput, RegisterOrganizationInput } from '../types';
 
 function storeSession(data: LoginResponse) {
   localStorage.setItem(TOKEN_KEY, data.accessToken);
@@ -33,6 +33,53 @@ async function parseAuthResponse(response: Response): Promise<LoginResponse> {
 
   storeSession({ accessToken, refreshToken, user });
   return { accessToken, refreshToken, user };
+}
+
+export async function registerApplicant(data: RegisterApplicantInput) {
+  const response = await fetch(`${API_BASE}/api/v1/auth/register/applicant`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  const body = await response.json();
+  if (!response.ok || !body.success) {
+    throw new Error(body.message ?? 'Registration failed');
+  }
+  return body.message as string;
+}
+
+export async function registerOrganization(data: RegisterOrganizationInput) {
+  const response = await fetch(`${API_BASE}/api/v1/auth/register/organization`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  const body = await response.json();
+  if (!response.ok || !body.success) {
+    throw new Error(body.message ?? 'Registration failed');
+  }
+  return body.message as string;
+}
+
+export async function getInvitation(token: string) {
+  const response = await fetch(`${API_BASE}/api/v1/auth/invite/${token}`);
+  const body = await response.json();
+  if (!response.ok || !body.success) {
+    throw new Error(body.message ?? 'Invalid invitation');
+  }
+  return body.data as InvitationDetails;
+}
+
+export async function acceptInvitation(token: string, password: string, name?: string) {
+  const response = await fetch(`${API_BASE}/api/v1/auth/invite/${token}/accept`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password, name }),
+  });
+
+  return parseAuthResponse(response);
 }
 
 export async function login(email: string, password: string): Promise<LoginResponse> {

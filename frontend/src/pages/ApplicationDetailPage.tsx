@@ -70,10 +70,11 @@ export function ApplicationDetailPage() {
   }
 
   const isAssignedReviewer = application.reviewerId === user?.id;
+  const isApplicant = hasRole('APPLICANT') && application.applicantUserId === user?.id;
   const canUpload =
-    (hasRole('TENANT_ADMIN') || (hasRole('REVIEWER') && isAssignedReviewer)) &&
+    ((hasRole('TENANT_ADMIN') || (hasRole('REVIEWER') && isAssignedReviewer)) || isApplicant) &&
     !['APPROVED', 'REJECTED'].includes(application.status);
-  const canSubmit = hasRole('TENANT_ADMIN') && application.status === 'DRAFT';
+  const canSubmit = (hasRole('TENANT_ADMIN') || isApplicant) && application.status === 'DRAFT';
   const canAssignReviewer = hasRole('TENANT_ADMIN') && application.status === 'SUBMITTED';
   const canReview = hasRole('REVIEWER') && isAssignedReviewer;
   const showRisk = application.status !== 'DRAFT';
@@ -82,7 +83,13 @@ export function ApplicationDetailPage() {
     <div>
       <div className="mb-6">
         <Link
-          to={hasRole('REVIEWER') && !hasRole('TENANT_ADMIN') ? '/inbox' : '/applications'}
+          to={
+            hasRole('APPLICANT')
+              ? '/dashboard'
+              : hasRole('REVIEWER') && !hasRole('TENANT_ADMIN')
+                ? '/inbox'
+                : '/applications'
+          }
           className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700"
         >
           <ArrowLeft className="h-4 w-4" />

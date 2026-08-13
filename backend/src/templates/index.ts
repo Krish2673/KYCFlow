@@ -5,3 +5,5 @@ export * from "./reviewerReminder.template";
 export * from "./escalation.template";
 export * from "./dailySummary.template";
 export * from "./otp.template";
+export * from "./invitation.template";
+export * from "./applicantApproved.template";

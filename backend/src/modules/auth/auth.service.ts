@@ -23,6 +23,22 @@ export const loginUser = async (
     throw new AppError("Invalid credentials", 401);
   }
 
+  if (!user.password) {
+    throw new AppError("Please complete your account setup via the invitation link", 403);
+  }
+
+  if (user.status === "PENDING") {
+    throw new AppError("Your account is pending approval from your organization admin", 403);
+  }
+
+  if (user.status === "REJECTED") {
+    throw new AppError("Your registration was rejected. Contact your organization admin", 403);
+  }
+
+  if (user.status === "SUSPENDED") {
+    throw new AppError("Your account has been suspended", 403);
+  }
+
   const isPasswordValid = await bcrypt.compare(
     password,
     user.password
@@ -312,6 +328,14 @@ await bcrypt.compare(
             "User not found",
             404
         );
+    }
+
+    if (!user.password) {
+        throw new AppError("Please complete your account setup via the invitation link", 403);
+    }
+
+    if (user.status !== "ACTIVE") {
+        throw new AppError("Your account is not active", 403);
     }
 
     const accessToken = jwt.sign(

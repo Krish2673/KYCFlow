@@ -13,7 +13,8 @@ router.post(
   authenticate,
   authorize(
     "TENANT_ADMIN",
-    "REVIEWER"
+    "REVIEWER",
+    "APPLICANT"
   ),
   upload.single("file"),
   uploadDocumentController

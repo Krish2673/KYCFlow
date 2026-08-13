@@ -22,6 +22,10 @@ function buildQuery(params: ApplicationsQuery) {
   return qs ? `?${qs}` : '';
 }
 
+export function getMyApplication() {
+  return apiRequest<Application>('/api/v1/applications/my-application');
+}
+
 export function getApplications(params: ApplicationsQuery = {}) {
   return apiRequestWithMeta<Application[]>(
     `/api/v1/applications${buildQuery(params)}`,

@@ -1,23 +1,37 @@
-// src/modules/tenant/tenant.service.ts
-
 import prisma from "../../config/prisma";
+import { uniqueTenantSlug } from "../../utils/slug";
 
 export const createTenant = async (name: string) => {
-  return await prisma.tenant.create({
+  const slug = await uniqueTenantSlug(prisma, name);
+
+  return prisma.tenant.create({
     data: {
       name,
+      slug,
     },
   });
 };
 
 export const getAllTenants = async () => {
-  return await prisma.tenant.findMany();
+  return prisma.tenant.findMany({
+    orderBy: { name: "asc" },
+  });
+};
+
+export const getPublicTenants = async () => {
+  return prisma.tenant.findMany({
+    where: { allowApplicantRegistration: true },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+    },
+    orderBy: { name: "asc" },
+  });
 };
 
 export const getTenantById = async (id: string) => {
-  return await prisma.tenant.findUnique({
-    where: {
-      id,
-    },
+  return prisma.tenant.findUnique({
+    where: { id },
   });
 };

@@ -3,58 +3,60 @@ import {
   createUser,
   getAllUsers,
   getUserById,
+  inviteUser,
+  getPendingApplicants,
 } from "./user.service";
+import {
+  approveApplicant,
+  rejectApplicant,
+} from "../auth/registration.service";
+import { asyncHandler } from "../../utils/asyncHandler";
+import { sendResponse } from "../../utils/sendResponse";
 
-export const createUserController = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    console.log(req.body);
-    const user = await createUser(req.body);
+export const createUserController = asyncHandler(async (req: Request, res: Response) => {
+  const user = await createUser(req.body);
+  return sendResponse(res, 201, "User created successfully", user);
+});
 
-    res.status(201).json({
-      success: true,
-      data: user,
-    });
-  } catch(error) {
-  console.error(error);
-
-  res.status(500).json({
-    success: false,
-    message: "Failed to create user",
-    error,
+export const inviteUserController = asyncHandler(async (req: Request, res: Response) => {
+  const result = await inviteUser({
+    ...req.body,
+    tenantId: req.user!.tenantId,
+    invitedById: req.user!.userId,
   });
-}
-};
+  return sendResponse(res, 201, result.message, result);
+});
 
-export const getAllUsersController = async (
-  req: Request,
-  res: Response
-) => {
-  const users = await getAllUsers();
+export const getAllUsersController = asyncHandler(async (req: Request, res: Response) => {
+  const users = await getAllUsers(req.user!.tenantId);
+  return sendResponse(res, 200, "Users fetched successfully", users);
+});
 
-  res.status(200).json({
-    success: true,
-    data: users,
-  });
-};
+export const getPendingApplicantsController = asyncHandler(async (req: Request, res: Response) => {
+  const applicants = await getPendingApplicants(req.user!.tenantId);
+  return sendResponse(res, 200, "Pending applicants fetched", applicants);
+});
 
-export const getUserByIdController = async (
-  req: Request,
-  res: Response
-) => {
-  const user = await getUserById(req.params.id as string);
+export const approveApplicantController = asyncHandler(async (req: Request, res: Response) => {
+  const result = await approveApplicant(
+    req.params.id as string,
+    req.user!.userId,
+    req.user!.tenantId,
+  );
+  return sendResponse(res, 200, "Applicant approved successfully", result);
+});
+
+export const rejectApplicantController = asyncHandler(async (req: Request, res: Response) => {
+  const result = await rejectApplicant(req.params.id as string, req.user!.tenantId);
+  return sendResponse(res, 200, "Applicant rejected", result);
+});
+
+export const getUserByIdController = asyncHandler(async (req: Request, res: Response) => {
+  const user = await getUserById(req.params.id as string, req.user!.tenantId);
 
   if (!user) {
-    return res.status(404).json({
-      success: false,
-      message: "User not found",
-    });
+    return sendResponse(res, 404, "User not found");
   }
 
-  res.status(200).json({
-    success: true,
-    data: user,
-  });
-};
+  return sendResponse(res, 200, "User fetched successfully", user);
+});

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { Shield } from 'lucide-react';
 import { requestOtp } from '../api/auth';
 import { useAuth } from '../contexts/AuthContext';
@@ -222,6 +222,12 @@ export function LoginPage() {
 
           <p className="mt-8 text-center text-xs text-slate-400">
             Demo: admin@zerodha.com / password123
+          </p>
+          <p className="mt-3 text-center text-sm text-slate-500">
+            Don&apos;t have an account?{' '}
+            <Link to="/register" className="font-medium text-brand-600 hover:text-brand-700">
+              Register
+            </Link>
           </p>
         </div>
       </div>

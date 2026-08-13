@@ -1,59 +1,51 @@
 import { Router } from "express";
-
-import { loginController, logoutController, refreshTokenController, requestOTPController, verifyOTPController } from "./auth.controller";
+import {
+  loginController,
+  logoutController,
+  refreshTokenController,
+  requestOTPController,
+  verifyOTPController,
+  registerApplicantController,
+  registerOrganizationController,
+  getInvitationController,
+  acceptInvitationController,
+} from "./auth.controller";
 import { loginLimiter } from "../../middleware/rateLimiter.middleware";
 import { authenticate } from "../../middleware/auth.middleware";
+import { validate } from "../../middleware/validate.middleware";
+import {
+  registerApplicantSchema,
+  registerOrganizationSchema,
+  acceptInviteSchema,
+} from "../../validators/auth.validator";
 
 const router = Router();
 
-/**
- * @swagger
- * /auth/login:
- *   post:
- *     summary: Login user
- *     tags:
- *       - Authentication
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               password:
- *                 type: string
- *     responses:
- *       200:
- *         description: Login successful
- */
+router.post("/login", loginLimiter, loginController);
 
 router.post(
-  "/login",
-  loginLimiter,
-  loginController
+  "/register/applicant",
+  validate(registerApplicantSchema),
+  registerApplicantController,
 );
 
 router.post(
-    "/logout",
-    authenticate,
-    logoutController
+  "/register/organization",
+  validate(registerOrganizationSchema),
+  registerOrganizationController,
 );
 
-router.post(
-    "/refresh",
-    refreshTokenController
-);
+router.get("/invite/:token", getInvitationController);
 
 router.post(
-    "/request-otp",
-    requestOTPController
+  "/invite/:token/accept",
+  validate(acceptInviteSchema),
+  acceptInvitationController,
 );
 
-router.post(
-    "/verify-otp",
-    verifyOTPController
-);
+router.post("/logout", authenticate, logoutController);
+router.post("/refresh", refreshTokenController);
+router.post("/request-otp", requestOTPController);
+router.post("/verify-otp", verifyOTPController);
 
 export default router;

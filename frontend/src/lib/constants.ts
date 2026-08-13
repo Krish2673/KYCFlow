@@ -29,7 +29,15 @@ export const USER_ROLE_LABELS: Record<UserRole, string> = {
   SUPER_ADMIN: 'Super Admin',
   TENANT_ADMIN: 'Tenant Admin',
   REVIEWER: 'Reviewer',
+  APPLICANT: 'Applicant',
 };
+
+export const USER_STATUS_LABELS = {
+  PENDING: 'Pending Approval',
+  ACTIVE: 'Active',
+  REJECTED: 'Rejected',
+  SUSPENDED: 'Suspended',
+} as const;
 
 export const VALID_TRANSITIONS: Record<ApplicationStatus, ApplicationStatus[]> = {
   DRAFT: ['SUBMITTED'],

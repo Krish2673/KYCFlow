@@ -1,31 +1,35 @@
+import "./env";
 import Redis from "ioredis";
 
-export const redisClient = new Redis(process.env.REDIS_URL!);
+const redisUrl = process.env.REDIS_URL;
 
-export const bullRedisConnection =
-  new Redis(
-    process.env.REDIS_URL!,
-    {
-      maxRetriesPerRequest: null,
-      tls : {},
-    }
+if (!redisUrl) {
+  console.error(
+    "REDIS_URL is not set. Auth, caching, and rate limiting will not work.",
   );
+}
 
-redisClient.on(
-    "connect",
-    () => {
-        console.log(
-            "Redis Connected"
-        );
-    }
+const useTls = redisUrl?.startsWith("rediss://") ?? false;
+
+const sharedOptions = useTls ? { tls: {} } : {};
+
+export const redisClient = new Redis(redisUrl ?? "redis://127.0.0.1:6379", {
+  maxRetriesPerRequest: 3,
+  ...sharedOptions,
+});
+
+export const bullRedisConnection = new Redis(
+  redisUrl ?? "redis://127.0.0.1:6379",
+  {
+    maxRetriesPerRequest: null,
+    ...sharedOptions,
+  },
 );
 
-redisClient.on(
-    "error",
-    (err) => {
-        console.error(
-            "Redis Error:",
-            err
-        );
-    }
-);
+redisClient.on("connect", () => {
+  console.log("Redis connected");
+});
+
+redisClient.on("error", (err) => {
+  console.error("Redis error:", err.message);
+});

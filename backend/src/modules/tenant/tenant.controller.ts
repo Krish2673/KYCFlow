@@ -1,62 +1,35 @@
-// src/modules/tenant/tenant.controller.ts
-
 import { Request, Response } from "express";
 import {
   createTenant,
   getAllTenants,
   getTenantById,
+  getPublicTenants,
 } from "./tenant.service";
+import { asyncHandler } from "../../utils/asyncHandler";
+import { sendResponse } from "../../utils/sendResponse";
 
-export const createTenantController = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    const { name } = req.body;
+export const createTenantController = asyncHandler(async (req: Request, res: Response) => {
+  const { name } = req.body;
+  const tenant = await createTenant(name);
+  return sendResponse(res, 201, "Tenant created successfully", tenant);
+});
 
-    const tenant = await createTenant(name);
-
-    res.status(201).json({
-      success: true,
-      data: tenant,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to create tenant",
-    });
-  }
-};
-
-export const getAllTenantsController = async (
-  req: Request,
-  res: Response
-) => {
+export const getAllTenantsController = asyncHandler(async (_req: Request, res: Response) => {
   const tenants = await getAllTenants();
+  return sendResponse(res, 200, "Tenants fetched successfully", tenants);
+});
 
-  res.status(200).json({
-    success: true,
-    data: tenants,
-  });
-};
+export const getPublicTenantsController = asyncHandler(async (_req: Request, res: Response) => {
+  const tenants = await getPublicTenants();
+  return sendResponse(res, 200, "Organizations fetched successfully", tenants);
+});
 
-export const getTenantByIdController = async (
-  req: Request,
-  res: Response
-) => {
-  const { id } = req.params as { id: string };
-
-  const tenant = await getTenantById(id);
+export const getTenantByIdController = asyncHandler(async (req: Request, res: Response) => {
+  const tenant = await getTenantById(req.params.id as string);
 
   if (!tenant) {
-    return res.status(404).json({
-      success: false,
-      message: "Tenant not found",
-    });
+    return sendResponse(res, 404, "Tenant not found");
   }
 
-  res.status(200).json({
-    success: true,
-    data: tenant,
-  });
-};
+  return sendResponse(res, 200, "Tenant fetched successfully", tenant);
+});

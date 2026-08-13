@@ -11,6 +11,14 @@ enum UserRole {
   SUPER_ADMIN
   TENANT_ADMIN
   REVIEWER
+  APPLICANT
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+  SUSPENDED
 }
 
 enum ApplicationStatus {
@@ -33,31 +41,40 @@ enum DocumentType {
 }
 
 model Tenant {
-  id           String @id @default(cuid())
-
-  name         String
+  id                         String @id @default(cuid())
+  name                       String
+  slug                       String @unique
+  allowApplicantRegistration Boolean @default(true)
 
   users        User[]
   applications Application[]
+  invitations  Invitation[]
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id       String     @id @default(cuid())
+  name     String
+  email    String     @unique
+  password String?
+  role     UserRole
+  status   UserStatus @default(ACTIVE)
 
-  name      String
-  email     String   @unique
-  password  String
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
 
-  role      UserRole
+  approvedAt   DateTime?
+  approvedById String?
+  approvedBy   User?  @relation("ApprovedUsers", fields: [approvedById], references: [id])
+  approvedUsers User[] @relation("ApprovedUsers")
 
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  applicantApplication Application? @relation("ApplicantApplication")
 
-  createdApplications Application[] @relation("CreatedApplications")
+  createdApplications  Application[] @relation("CreatedApplications")
   assignedApplications Application[] @relation("AssignedApplications")
+  sentInvitations      Invitation[]  @relation("SentInvitations")
 
   auditLogs AuditLog[]
 
@@ -65,19 +82,39 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+model Invitation {
+  id         String    @id @default(cuid())
+  email      String
+  role       UserRole
+  token      String    @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  invitedById String
+  invitedBy   User @relation("SentInvitations", fields: [invitedById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([email, tenantId])
+}
+
 model Application {
-  id          String @id @default(cuid())
+  id       String            @id @default(cuid())
+  fullName String
+  email    String
+  status   ApplicationStatus @default(DRAFT)
 
-  fullName    String
-  email       String
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
 
-  status      ApplicationStatus @default(DRAFT)
+  reviewerId String?
+  reviewer   User? @relation("AssignedApplications", fields: [reviewerId], references: [id])
 
-  tenantId    String
-  tenant      Tenant @relation(fields: [tenantId], references: [id])
-
-  reviewerId  String?
-  reviewer    User? @relation("AssignedApplications", fields: [reviewerId], references: [id])
+  applicantUserId String? @unique
+  applicantUser   User?   @relation("ApplicantApplication", fields: [applicantUserId], references: [id])
 
   auditLogs AuditLog[]
   documents Document[]
@@ -85,39 +122,32 @@ model Application {
   createdById String
   createdBy   User @relation("CreatedApplications", fields: [createdById], references: [id])
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model AuditLog {
   id String @id @default(cuid())
 
   applicationId String
-  application Application @relation( fields: [applicationId], references: [id] )
+  application   Application @relation(fields: [applicationId], references: [id])
 
   userId String
-  user User @relation( fields: [userId], references: [id] )
+  user   User @relation(fields: [userId], references: [id])
 
   fromStatus ApplicationStatus
-
-  toStatus ApplicationStatus
+  toStatus   ApplicationStatus
 
   createdAt DateTime @default(now())
 }
 
 model Document {
-
-  id String @id @default(cuid())
-
-  type DocumentType
-
-  path String @default("")
-
-  verified Boolean @default(false)
-
-  uploadedAt DateTime @default(now())
+  id         String       @id @default(cuid())
+  type       DocumentType
+  path       String       @default("")
+  verified   Boolean      @default(false)
+  uploadedAt DateTime     @default(now())
 
   applicationId String
-
-  application Application @relation( fields: [applicationId], references: [id])
+  application   Application @relation(fields: [applicationId], references: [id])
 }

@@ -11,7 +11,9 @@ import {
   calculateRisk,
   getApplicationAuditLogs,
   getReviewerMetrics,
-  getMe
+  getMe,
+  getApplicantApplication,
+  assertApplicationAccess,
 } from "./application.service";
 import { ApplicationStatus } from "@prisma/client";
 import { asyncHandler } from "../../utils/asyncHandler";
@@ -92,63 +94,49 @@ await getAllApplications(
   };
 
 export const getApplicationByIdController =
-  async (
-    req: Request,
-    res: Response
-  ) => {
+  asyncHandler(async (req: Request, res: Response) => {
+    const application = await assertApplicationAccess(
+      req.params.id as string,
+      req.user!.tenantId,
+      req.user!.userId,
+      req.user!.role,
+    );
 
-    const application =
-      await getApplicationById(
-        req.params.id as string,
-        req.user!.tenantId
-      );
+    return sendResponse(res, 200, "Application fetched successfully", application);
+  });
+
+export const getApplicantApplicationController =
+  asyncHandler(async (req: Request, res: Response) => {
+    const application = await getApplicantApplication(
+      req.user!.userId,
+      req.user!.tenantId,
+    );
 
     if (!application) {
-      return res.status(404).json({
-        success: false,
-        message:
-          "Application not found",
-      });
+      return sendResponse(res, 404, "No KYC application found for your account");
     }
 
-    res.status(200).json({
-      success: true,
-      data: application,
-    });
-  };
+    return sendResponse(res, 200, "Application fetched successfully", application);
+  });
 
 export const submitApplicationController =
-  async (
-    req : Request,
-    res : Response
-  ) => {
-
-    try {
-
-      const result =
-        await submitApplication(
-          req.params.id as string,
-          req.user!.tenantId
-        );
-
-      res.status(200).json({
-        success: true,
-        data: result,
-      });
-
-    } catch (error) {
-
-      res.status(400).json({
-        success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Failed",
-      });
-
+  asyncHandler(async (req: Request, res: Response) => {
+    if (req.user!.role === "APPLICANT") {
+      await assertApplicationAccess(
+        req.params.id as string,
+        req.user!.tenantId,
+        req.user!.userId,
+        req.user!.role,
+      );
     }
 
-  };
+    const result = await submitApplication(
+      req.params.id as string,
+      req.user!.tenantId,
+    );
+
+    return sendResponse(res, 200, "Application submitted successfully", result);
+  });
 
 export const updateApplicationStatusController =
   async (req : Request, res : Response) => {

@@ -15,6 +15,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<void>;
   loginWithOtp: (email: string, otp: string) => Promise<void>;
   logout: () => Promise<void>;
+  setSession: (user: AuthUser, token: string) => void;
   hasRole: (...roles: UserRole[]) => boolean;
 }
 
@@ -43,6 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await apiLogout();
         setUser(null);
         setToken(null);
+      },
+      setSession: (nextUser, nextToken) => {
+        setUser(nextUser);
+        setToken(nextToken);
       },
       hasRole: (...roles) => !!user && roles.includes(user.role),
     }),

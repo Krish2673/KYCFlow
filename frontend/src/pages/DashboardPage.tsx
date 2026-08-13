@@ -5,6 +5,7 @@ import { getApplicationMetrics, getApplications } from '../api/applications';
 import { MetricsCards } from '../components/applications/MetricsCards';
 import { ApplicationStatusBadge } from '../components/applications/ApplicationStatusBadge';
 import { ReviewerDashboard } from '../components/dashboard/ReviewerDashboard';
+import { ApplicantDashboard } from '../components/dashboard/ApplicantDashboard';
 import { StatusDistributionChart } from '../components/dashboard/StatusDistributionChart';
 import { Header } from '../components/layout/Header';
 import { Button } from '../components/ui/Button';
@@ -17,6 +18,11 @@ export function DashboardPage() {
   const { hasRole } = useAuth();
   const isTenantAdmin = hasRole('TENANT_ADMIN', 'SUPER_ADMIN');
   const isReviewerOnly = hasRole('REVIEWER') && !isTenantAdmin;
+  const isApplicant = hasRole('APPLICANT');
+
+  if (isApplicant) {
+    return <ApplicantDashboard />;
+  }
 
   if (isReviewerOnly) {
     return <ReviewerDashboard />;

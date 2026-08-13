@@ -23,13 +23,25 @@ cd backend
 npm install
 ```
 
-Create `backend/.env`:
+Create `backend/.env` (copy from `.env.example`):
 
 ```env
 DATABASE_URL=postgresql://user:password@localhost:5432/kycflow
 JWT_SECRET=your-secret-key
+JWT_REFRESH_SECRET=your-refresh-secret
+REDIS_URL=redis://localhost:6379
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+RESEND_API_KEY=re_your_key
+FRONTEND_URL=http://localhost:5173
+```
+
+For local development with Docker:
+
+```bash
+docker compose up -d postgres redis
+# Then set DATABASE_URL=postgresql://postgres:postgres@localhost:5432/kycflow
+# And REDIS_URL=redis://localhost:6379
 ```
 
 Run migrations and start the API:

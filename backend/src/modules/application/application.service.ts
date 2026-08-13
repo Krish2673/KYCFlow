@@ -948,3 +948,62 @@ export const getMe = async (
 
 };
 
+export const getApplicantApplication = async (
+  userId: string,
+  tenantId: string,
+) => {
+  return prisma.application.findFirst({
+    where: {
+      applicantUserId: userId,
+      tenantId,
+    },
+    include: {
+      reviewer: {
+        select: { id: true, name: true, email: true },
+      },
+      documents: {
+        select: {
+          id: true,
+          type: true,
+          verified: true,
+          uploadedAt: true,
+        },
+      },
+    },
+  });
+};
+
+export const assertApplicationAccess = async (
+  applicationId: string,
+  tenantId: string,
+  userId: string,
+  role: string,
+) => {
+  const application = await prisma.application.findFirst({
+    where: { id: applicationId, tenantId },
+    include: {
+      reviewer: {
+        select: { id: true, name: true, email: true },
+      },
+      documents: {
+        select: {
+          id: true,
+          type: true,
+          verified: true,
+          uploadedAt: true,
+        },
+      },
+    },
+  });
+
+  if (!application) {
+    throw new AppError("Application not found", 404);
+  }
+
+  if (role === "APPLICANT" && application.applicantUserId !== userId) {
+    throw new AppError("You do not have access to this application", 403);
+  }
+
+  return application;
+};
+

@@ -1,5 +1,9 @@
 import { apiRequest } from './client';
-import type { CreateTenantInput, Tenant } from '../types';
+import type { CreateTenantInput, PublicTenant, Tenant } from '../types';
+
+export function getPublicTenants() {
+  return apiRequest<PublicTenant[]>('/api/v1/tenants/public');
+}
 
 export function getTenants() {
   return apiRequest<Tenant[]>('/api/v1/tenants');
